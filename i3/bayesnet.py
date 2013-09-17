@@ -39,12 +39,20 @@ class BayesNetNode(object):
     self.children = tuple(sorted(self.children))
     
   def add_parent(self, parent):
-    """Add a new parent node."""
+    """Add a new parent node.
+
+    Args:
+      parent: a BayesNetNode
+    """
     self.parents = tuple(list(self.parents) + [parent])
     self.sort_parents()
 
   def add_child(self, child):
-    """Add a new child node."""
+    """Add a new child node.
+
+    Args:
+      child: a BayesNetNode
+    """
     self.children = tuple(list(self.children) + [child])
     self.sort_children()
 
@@ -93,7 +101,11 @@ class BayesNet(object):
   """A Bayesian network."""
 
   def __init__(self, nodes):
-    """Initializes Bayesian network given a list of nodes."""
+    """Initializes Bayesian network given a list of nodes.
+
+    Args:
+      nodes: a list of BayesNetNodes
+    """
     assert all(isinstance(node, BayesNetNode) for node in nodes)
     self.nodes = tuple(nodes)
     self.toposort_nodes()
@@ -111,7 +123,14 @@ class BayesNet(object):
     self.nodes = tuple(sorted_nodes)
 
   def sample(self, random_world=None):
-    """Sample an assignment to all nodes in the network."""
+    """Sample an assignment to all nodes in the network.
+
+    Args:
+      random_world: a dictionary mapping (some) nodes to values.
+
+    Returns:
+      a new random world
+    """
     if random_world:
       random_world = copy.copy(random_world)
     else:
@@ -122,7 +141,11 @@ class BayesNet(object):
     return random_world
 
   def log_probability(self, random_world):
-    """Return the total log probability of the given random world."""
+    """Return the total log probability of the given random world.
+
+    Args:
+      random_world: a dictionary mapping (some) nodes to values.    
+    """
     assert len(random_world) == len(self.nodes)
     log_prob = 0.0
     for node in random_world:
