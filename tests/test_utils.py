@@ -1,13 +1,12 @@
 #!/usr/bin/env python
 
-"""
-Tests for sampling and probability calculation utilities.
-"""
+"""Tests for sampling and probability calculation utilities."""
 
 import math
 import numpy as np
 
 from i3 import utils
+
 
 def test_safelog_base():
   """Test that safe_log does not differ from log for values > 0."""

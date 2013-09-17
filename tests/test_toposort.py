@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
-"""
-Tests for topological sorting.
-"""
+"""Tests for topological sorting."""
 
 from i3 import toposort
+
 
 def test_toposort():
   """Test that sorted order is actually topological."""
