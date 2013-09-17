@@ -9,7 +9,8 @@ from i3 import bayesnet
 class TestBayesNet(object):
   """Test a two-node Bayes net."""
 
-  def setup_class(self):
+  def setup(self):
+    """Set up two nodes and network."""
     # Node 1
     sample_1 = lambda: True
     score_1 = (lambda parents, value:
