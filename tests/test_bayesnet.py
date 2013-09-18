@@ -1,7 +1,7 @@
 """Tests for Bayes net and Bayes net nodes."""
 
 from i3 import utils
-from i3.networks.py import binary_net
+from i3.networks import binary_net
 
 
 class TestBayesNet(object):
