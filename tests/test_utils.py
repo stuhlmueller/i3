@@ -19,3 +19,19 @@ def test_safelog_extended():
   """Test that safe_log returns -inf for 0."""
   assert utils.safe_log(0) == utils.NEGATIVE_INFINITY
   assert utils.NEGATIVE_INFINITY == float("-inf")
+
+
+def test_random_state():
+  """Test RandomState class."""
+  num_samples = 100
+  rng_1 = utils.RandomState(seed=0)
+  sampler_1 = rng_1.categorical_sampler(["a", "b"], [0.5, 0.5])
+  samples_1 = [sampler_1() for _ in xrange(num_samples)]
+  rng_2 = utils.RandomState(seed=0)
+  sampler_2 = rng_2.categorical_sampler(["a", "b"], [0.5, 0.5])
+  samples_2 = [sampler_2() for _ in xrange(num_samples)]
+  assert samples_1 == samples_2
+  for value in ["a", "b"]:
+    for samples in [samples_1, samples_2]:
+      assert samples.count(value) > 10
+  
