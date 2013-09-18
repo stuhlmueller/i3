@@ -2,6 +2,9 @@
 
 """Test probability distributions."""
 
+import math
+import numpy as np
+
 from i3 import distribution
 from i3 import utils
 
@@ -16,5 +19,8 @@ def test_categorical_distribution():
   samples = [dist.sample() for _ in range(10000)]
   assert 2000 < samples.count("a") < 4000
   assert 6000 < samples.count("b") < 8000
-  assert dist.log_probability("a") < dist.log_probability("b")
+  np.testing.assert_almost_equal(
+    .3, math.exp(dist.log_probability("a")))
+  np.testing.assert_almost_equal(
+    .7, math.exp(dist.log_probability("b")))  
   assert sorted(dist.support()) == ["a", "b"]
