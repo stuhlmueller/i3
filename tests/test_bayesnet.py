@@ -1,7 +1,7 @@
 """Tests for Bayes net and Bayes net nodes."""
 
 from i3 import utils
-from i3 import networks
+from i3.networks.py import binary_net
 
 
 class TestBayesNet(object):
@@ -10,7 +10,7 @@ class TestBayesNet(object):
   def setup(self):
     """Set up two nodes and network."""
     rng = utils.RandomState(seed=0)
-    self.net = networks.py.binary.get_network(rng)
+    self.net = binary_net.get(rng)
     self.node_1 = self.net.find_node("node_1")
     self.node_2 = self.net.find_node("node_2")
   

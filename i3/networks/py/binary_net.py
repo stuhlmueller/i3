@@ -4,7 +4,7 @@ from i3 import bayesnet
 from i3 import distribution
 
 
-def get_network(rng):
+def get(rng):
   """Return binary Bayes net."""
   get_dist_1 = lambda: distribution.CategoricalDistribution(
     [True], [1.0], rng)
