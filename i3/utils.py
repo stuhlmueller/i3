@@ -2,6 +2,7 @@
 
 import math
 import numpy as np
+from scipy import stats
 
 
 NEGATIVE_INFINITY = float('-inf')
@@ -16,6 +17,22 @@ def safe_log(num):
   if num == 0.0:
     return NEGATIVE_INFINITY
   return math.log(num)
+
+
+def significantly_greater(a, b, alpha=0.05):
+  """Perform one-sided t-test with null-hypothesis a <= b.
+
+  Args:
+    a: array
+    b: array
+    alpha: significance threshold
+
+  Returns:
+    True if null hypothesis rejected, false otherwise
+  """
+  t, probability = stats.ttest_ind(a, b)
+  p_value = probability/2
+  return p_value < alpha and t > 0  
 
 
 class RandomState(np.random.RandomState):
