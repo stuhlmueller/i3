@@ -60,9 +60,7 @@ class BayesNetNode(object):
     Returns:
       a sampled value
     """
-    parent_values = [random_world[parent] for parent in self.parents]
-    dist = self.get_distribution(*parent_values)
-    return dist.sample()
+    return self.distribution(random_world).sample()
 
   def log_probability(self, random_world, node_value):
     """Return the log probability of node_value for this node given context.
@@ -74,15 +72,25 @@ class BayesNetNode(object):
     Returns:
       score: a log probability
     """
-    parent_values = [random_world[parent] for parent in self.parents]
-    dist = self.get_distribution(*parent_values)
-    return dist.log_probability(node_value)
+    return self.distribution(random_world).log_probability(node_value)
 
   def markov_blanket(self):
-    """Return the list of nodes in the Markov blanket of this node."""
+    """Return set of nodes in the Markov blanket of this node."""
     coparents = [parent for child in self.children for parent in child.parents]
     blanket = list(self.parents) + list(self.children) + coparents
     return set(node for node in blanket if node != self)
+
+  def parent_values(self, random_world):
+    """Extract list of parent values from random world."""
+    return [random_world[parent] for parent in self.parents]
+
+  def support(self, random_world):
+    """Return supported values of node given random world."""
+    return self.distribution(random_world).support()
+
+  def distribution(self, random_world):
+    """Return distribution of node conditioned on parents."""
+    return self.get_distribution(*self.parent_values(random_world))
 
   def __str__(self):
     return str(self.name)
