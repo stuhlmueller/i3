@@ -41,11 +41,12 @@ class CategoricalDistribution(DiscreteDistribution):
     super(CategoricalDistribution, self).__init__(rng)
     self._sampler = rng.categorical_sampler(values, probabilities)
     total = sum(probabilities)
-    self._value_to_prob = collections.defaultdict(lambda: 0)
+    self._value_to_logprob = collections.defaultdict(
+      lambda: utils.LOG_PROB_0)
     self._support = []
     for value, prob in zip(values, probabilities):
+      self._value_to_logprob[value] = utils.safe_log(prob / total)
       if prob != 0.0:
-        self._value_to_prob[value] = prob / total
         self._support.append(value)
 
   def sample(self):
@@ -54,7 +55,7 @@ class CategoricalDistribution(DiscreteDistribution):
 
   def log_probability(self, value):
     """Return the log probability of a given value."""
-    return utils.safe_log(self._value_to_prob[value])
+    return self._value_to_logprob[value]
 
   def support(self):
     """Return list of all values with non-zero probability."""
