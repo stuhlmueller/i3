@@ -1,5 +1,5 @@
 pytest>=2.3.5
 pytest-xdist>=1.8
-numpy>=1.7.0
+numpy>=1.6.1
 networkx>=1.8.1
-scipy>=0.12.0
+scipy>=0.9.0
