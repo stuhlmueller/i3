@@ -8,5 +8,5 @@ setup(name='i3',
       author='Andreas Stuhlmueller',
       author_email='ast@mit.edu',
       url='https://github.com/stuhlmueller/i3',
-      packages=['i3'],
+      packages=['i3', 'i3.networks'],
      )
