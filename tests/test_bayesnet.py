@@ -1,7 +1,8 @@
 """Tests for Bayes net and Bayes net nodes."""
 
-from i3 import utils
 from i3 import bayesnet
+from i3 import distribution
+from i3 import utils
 
 
 class TestBayesNet(object):
@@ -9,20 +10,14 @@ class TestBayesNet(object):
 
   def setup(self):
     """Set up two nodes and network."""
-    # Node 1
-    sample_1 = lambda: True
-    score_1 = (lambda parents, value:
-               utils.LOG_PROB_1 if value else utils.LOG_PROB_0)
-    self.node_1 = bayesnet.BayesNetNode("node_1", [], sample_1, score_1)
-    # Node 2
-    sample_2 = lambda parent_value: not(parent_value)
-    score_2 = (lambda parents, value:
-               utils.LOG_PROB_1 if value != parents[0] else utils.LOG_PROB_0)
-    self.node_2 = bayesnet.BayesNetNode(
-      "node_2", [self.node_1], sample_2, score_2)
-    # Add node 2 as child to node 1
+    rng = utils.RandomState(seed=0)
+    get_dist_1 = lambda: distribution.CategoricalDistribution(
+      [True], [1.0], rng)
+    self.node_1 = bayesnet.BayesNetNode("node_1", [], get_dist_1)
+    get_dist_2 = lambda parent_value: distribution.CategoricalDistribution(
+      [not(parent_value)], [1.0], rng)
+    self.node_2 = bayesnet.BayesNetNode("node_2", [self.node_1], get_dist_2)
     self.node_1.add_child(self.node_2)
-    # Network
     self.net = bayesnet.BayesNet([self.node_1, self.node_2])
   
   def test_node(self):

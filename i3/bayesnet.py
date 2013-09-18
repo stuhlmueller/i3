@@ -8,25 +8,22 @@ from i3 import toposort
 class BayesNetNode(object):
   """A single node in a Bayesian network."""
 
-  def __init__(self, name, parents, sample, score):
+  def __init__(self, name, parents, get_distribution):
     """Initialize Bayes net node based on parents, sampling/scoring functions.
 
     Args:
       name: a string
       parents: a (potentially empty) list of BayesNetNodes
-      sample: a random function taking |parents| arguments
-      score: a function mapping a list of arguments and a value to a
-        log probability
+      get_distribution: maps parent values to distribution
     """
     for parent in parents:
       assert isinstance(parent, BayesNetNode)
     self.name = name
-    self._sample = sample
-    self._score = score
     self.parents = parents
     self.sort_parents()    
     self.children = []
     self.sort_children()
+    self.get_distribution = get_distribution
 
   def sort_parents(self):
     """Sort the list of parent nodes."""
@@ -64,7 +61,8 @@ class BayesNetNode(object):
       a sampled value
     """
     parent_values = [random_world[parent] for parent in self.parents]
-    return self._sample(*parent_values)
+    dist = self.get_distribution(*parent_values)
+    return dist.sample()
 
   def log_probability(self, random_world, node_value):
     """Return the log probability of node_value for this node given context.
@@ -77,7 +75,8 @@ class BayesNetNode(object):
       score: a log probability
     """
     parent_values = [random_world[parent] for parent in self.parents]
-    return self._score(parent_values, node_value)
+    dist = self.get_distribution(*parent_values)
+    return dist.log_probability(node_value)
 
   def markov_blanket(self):
     """Return the list of nodes in the Markov blanket of this node."""
