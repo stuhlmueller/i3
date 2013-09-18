@@ -45,3 +45,13 @@ class RandomState(np.random.RandomState):
       index = np.digitize([self.rand()], bins)[0]
       return values[index]
     return sampler
+
+  def random_permutation(self, obj):
+    """Return permuted copy of array. If given int, create range array."""
+    if isinstance(obj, (int, np.integer)):
+      array = np.arange(obj)
+    else:
+      array = np.array(obj)
+    self.shuffle(array)
+    return array
+    

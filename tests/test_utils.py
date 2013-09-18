@@ -17,20 +17,6 @@ def test_safelog_extended():
   """Test that safe_log returns -inf for 0."""
   assert utils.safe_log(0) == utils.NEGATIVE_INFINITY
   assert utils.NEGATIVE_INFINITY == float("-inf")
-
-def test_random_state():
-  """Test RandomState class."""
-  num_samples = 100
-  rng_1 = utils.RandomState(seed=0)
-  sampler_1 = rng_1.categorical_sampler(["a", "b"], [0.5, 0.5])
-  samples_1 = [sampler_1() for _ in xrange(num_samples)]
-  rng_2 = utils.RandomState(seed=0)
-  sampler_2 = rng_2.categorical_sampler(["a", "b"], [0.5, 0.5])
-  samples_2 = [sampler_2() for _ in xrange(num_samples)]
-  assert samples_1 == samples_2
-  for value in ["a", "b"]:
-    for samples in [samples_1, samples_2]:
-      assert samples.count(value) > 10
   
 def test_significantly_greater():
   """Test that t-test works."""
@@ -45,3 +31,38 @@ def test_significantly_greater():
   assert not utils.significantly_greater(c, a, alpha)
   assert utils.significantly_greater(c, b, alpha)
   assert not utils.significantly_greater(b, c, alpha)
+
+  
+class TestRandomState(object):
+  """Test RandomState class."""
+
+  def setup(self):
+    self.rng_1 = utils.RandomState(seed=0)
+    self.rng_2 = utils.RandomState(seed=0)
+    
+  def test_categorical(self):
+    """Test categorical sampler."""
+    num_samples = 100
+    sampler_1 = self.rng_1.categorical_sampler(["a", "b"], [0.5, 0.5])
+    samples_1 = [sampler_1() for _ in xrange(num_samples)]
+    sampler_2 = self.rng_2.categorical_sampler(["a", "b"], [0.5, 0.5])
+    samples_2 = [sampler_2() for _ in xrange(num_samples)]
+    assert samples_1 == samples_2
+    for value in ["a", "b"]:
+      for samples in [samples_1, samples_2]:
+        assert samples.count(value) > 10
+    
+  def test_random_permutation(self):
+    """Test shuffle functionality."""
+    array_1 = self.rng_1.random_permutation(5)
+    array_2 = self.rng_2.random_permutation(5)
+    np.testing.assert_array_almost_equal(array_1, array_2)
+    for i in range(5):
+      assert i in array_1
+    array_3 = [str(i) + "!" for i in range(10000)]
+    array_4 = self.rng_1.random_permutation(array_3)
+    array_5 = self.rng_2.random_permutation(array_3)
+    np.testing.assert_array_equal(array_4, array_5)
+    for value in array_3:
+      assert value in array_4
+    assert array_3[0] != array_4[0]
