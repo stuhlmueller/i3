@@ -1,14 +1,17 @@
 """Tests for Bayes net and Bayes net nodes."""
 
+import collections
+
 from i3 import utils
 from i3.networks import binary_net
+from i3.networks import sprinkler_net
 
 
-class TestBayesNet(object):
+class TestBinaryBayesNet(object):
   """Test a two-node Bayes net."""
 
   def setup(self):
-    """Set up two nodes and network."""
+    """Set up random stream and network."""
     rng = utils.RandomState(seed=0)
     self.net = binary_net.get(rng)
     self.node_1 = self.net.find_node("node_1")
@@ -37,3 +40,24 @@ class TestBayesNet(object):
     random_world = self.net.sample({self.node_1: False})
     assert random_world[self.node_2] == True
     assert self.net.log_probability(random_world) == utils.LOG_PROB_0
+
+
+class TestSprinklerBayesNet(object):
+  """Test a three-node rain/sprinkler/grass network."""
+
+  def setup(self):
+    """Set up random stream and network."""    
+    rng = utils.RandomState(seed=0)
+    self.net = sprinkler_net.get(rng)
+
+  def test_network(self):
+    n = 10000
+    counts = collections.defaultdict(lambda: 0)
+    for _ in xrange(n):
+      random_world = self.net.sample()
+      for (node, value) in random_world.items():
+        if value:
+          counts[node.name] += 1
+    assert 1800 < counts["Rain"] < 2200
+    assert 3000 < counts["Sprinkler"] < 3400
+    assert 4200 < counts["Grass"] < 4600
