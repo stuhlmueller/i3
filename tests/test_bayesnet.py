@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """Tests for Bayes net and Bayes net nodes."""
 
 from i3 import utils

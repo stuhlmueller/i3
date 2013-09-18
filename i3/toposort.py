@@ -1,8 +1,8 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
+"""Topological sorting.
 
-# https://github.com/jweg/topological-sorting/blob/master/toposort.py
-
+Based on:
+https://github.com/jweg/topological-sorting/blob/master/toposort.py
+"""
 from __future__ import absolute_import
 from __future__ import with_statement
 

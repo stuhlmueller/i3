@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """Tests for topological sorting."""
 
 from i3 import toposort

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """Test probability distributions."""
 
 import math

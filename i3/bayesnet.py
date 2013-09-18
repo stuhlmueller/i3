@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """Data structures for Bayes nets and nodes."""
 
 import copy

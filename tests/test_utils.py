@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """Tests for sampling and probability calculation utilities."""
 
 import math

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """Utilities for stochastic sampling and probability calculations."""
 
 import math
