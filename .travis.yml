@@ -1,9 +1,20 @@
 language: python
+
 python:
-  - "2.7"
-# command to install dependencies
+  - 2.7
+
+# allow importing system site packages for easier numpy/scipy install
+virtualenv:
+  system_site_packages: true
+
+before_install:
+  - SITE_PKG_DIR=$VIRTUAL_ENV/lib/python$TRAVIS_PYTHON_VERSION/site-packages
+  - rm -f $VIRTUAL_ENV/lib/python$TRAVIS_PYTHON_VERSION/no-global-site-packages.txt  
+
 install:
+  - apt-get install python-numpy
+  - apt-get install python-scipy
   - pip install . --use-mirrors
   - pip install -r requirements.txt --use-mirrors
-# command to run tests
+
 script: py.test
