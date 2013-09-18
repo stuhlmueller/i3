@@ -38,7 +38,7 @@ class CategoricalDistribution(DiscreteDistribution):
       values: an iterable of associated values
       probabilities: an iterable of probabilites
     """
-    super(CategoricalDistribution, self).__init__()
+    super(CategoricalDistribution, self).__init__(rng)
     self._sampler = rng.categorical_sampler(values, probabilities)
     total = sum(probabilities)
     self._value_to_prob = collections.defaultdict(lambda: 0)
