@@ -30,7 +30,7 @@ def get(rng):
     get_distribution=lambda rain, sprinkler: (
       distribution.CategoricalDistribution(
         [True, False],
-        grass_cpt[(rain, sprinkler)],
+        grass_cpt[(sprinkler, rain)],
         rng)))
   sprinkler_node.add_child(grass_node)
   rain_node.add_child(grass_node)
