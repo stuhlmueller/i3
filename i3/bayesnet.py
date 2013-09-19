@@ -8,13 +8,15 @@ from i3 import toposort
 class BayesNetNode(object):
   """A single node in a Bayesian network."""
 
-  def __init__(self, name, parents, get_distribution):
+  def __init__(self, name, parents, get_distribution, full_support=None):
     """Initialize Bayes net node based on parents, sampling/scoring functions.
 
     Args:
       name: a string
       parents: a (potentially empty) list of BayesNetNodes
       get_distribution: maps parent values to distribution
+      full_support: list of values. if given, allows looking up node
+        support without random world
     """
     for parent in parents:
       assert isinstance(parent, BayesNetNode)
@@ -24,6 +26,7 @@ class BayesNetNode(object):
     self.children = []
     self.sort_children()
     self.get_distribution = get_distribution
+    self.full_support = full_support
 
   def sort_parents(self):
     """Sort the list of parent nodes."""
@@ -84,9 +87,13 @@ class BayesNetNode(object):
     """Extract list of parent values from random world."""
     return [random_world[parent] for parent in self.parents]
 
-  def support(self, random_world):
+  def support(self, random_world=None):
     """Return supported values of node given random world."""
-    return self.distribution(random_world).support()
+    assert random_world or self.full_support
+    if random_world:
+      return self.distribution(random_world).support()
+    else:
+      return self.full_support
 
   def distribution(self, random_world):
     """Return distribution of node conditioned on parents."""

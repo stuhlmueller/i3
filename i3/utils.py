@@ -1,5 +1,6 @@
 """Utilities for stochastic sampling and probability calculations."""
 
+import itertools
 import math
 import numpy as np
 from scipy import stats
@@ -55,3 +56,16 @@ class RandomState(np.random.RandomState):
     self.shuffle(array)
     return array
     
+
+def all_random_worlds(variable_names, support):
+  """Return iterable over all possible random worlds.
+
+  Args:
+    variable_names: a list of variable names
+    support: a list of possible values
+
+  Returns:
+    iterable of dictionaries mapping variables to values
+  """
+  for values in itertools.product(*[support]*len(variable_names)):
+    yield dict(zip(variable_names, values))

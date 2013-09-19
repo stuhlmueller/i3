@@ -5,27 +5,31 @@ from i3 import utils
 from i3.networks import sprinkler_net
 
 
-class TestRejection(object):
-  """Test rejection sampler."""
+class TestSprinkler(object):
+  """Test samplers on sprinkler network."""
 
   def setup(self):
-    """Create reandom stream and sprinkler network."""
-    self.rng = utils.RandomState(seed=1)
+    """Create random stream and sprinkler network."""
+    self.rng = utils.RandomState(seed=0)
     self.net = sprinkler_net.get(self.rng)
 
-  def test_sprinkler(self):
+  def run_sprinkler(self, chain_class):
     """Check that inference result is within +/- 100 of truth."""
     grass_node = self.net.find_node("Grass")
     rain_node = self.net.find_node("Rain")
-    evidence = {
-      grass_node : True
-    }
-    rejection_chain = mcmc.RejectionChain(self.net, self.rng, evidence)
-    rejection_chain.initialize_state()
+    evidence = {grass_node: True}
+    chain = chain_class(self.net, self.rng, evidence)
+    chain.initialize_state()
     rain_count = 0
-    for _ in xrange(10000):
-      rejection_chain.transition()
-      if rejection_chain.state[rain_node]:
+    for _ in xrange(100000):
+      chain.transition()
+      if chain.state[rain_node]:
         rain_count += 1
-    assert 3477 < rain_count < 3677
-    
+    print chain_class, rain_count
+    assert 33000 < rain_count < 38000
+
+  def test_rejection(self):
+    self.run_sprinkler(mcmc.RejectionChain)
+
+  def test_gibbs(self):
+    self.run_sprinkler(mcmc.GibbsChain)    

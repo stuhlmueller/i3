@@ -1,5 +1,4 @@
 """Probability distributions."""
-
 from __future__ import division
 
 import collections
@@ -41,13 +40,14 @@ class CategoricalDistribution(DiscreteDistribution):
       probabilities: an iterable of probabilites
     """
     super(CategoricalDistribution, self).__init__(rng)
-    self._sampler = rng.categorical_sampler(values, probabilities)
     total = sum(probabilities)
+    probabilities = [prob / total for prob in probabilities]
+    self._sampler = rng.categorical_sampler(values, probabilities)
     self._value_to_logprob = collections.defaultdict(
       lambda: utils.LOG_PROB_0)
     self._support = []
     for value, prob in zip(values, probabilities):
-      self._value_to_logprob[value] = utils.safe_log(prob / total)
+      self._value_to_logprob[value] = utils.safe_log(prob)
       if prob != 0.0:
         self._support.append(value)
 
