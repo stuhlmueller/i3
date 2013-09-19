@@ -1,7 +1,6 @@
 """Markov chain inference for Bayesian networks."""
 
 from i3 import utils
-from i3 import gibbs
 
 
 class MarkovChain(object):
