@@ -20,3 +20,8 @@ def test_sprinkler():
   for shuffled_edges in itertools.permutations(edges):
     ordered_nodes = toposort.toposort(shuffled_edges)
     assert ordered_nodes == ["rain", "sprinkler", "grass"]
+
+
+def test_stress():
+  """Run toposort stress test."""
+  toposort.test_generic_stress()
