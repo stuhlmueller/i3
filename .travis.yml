@@ -12,10 +12,10 @@ before_install:
 
 install:
   - pip install -e . --use-mirrors
-  - pip install -r requirements.txt --use-script
+  - pip install -r requirements.txt --use-mirrors
   - pwd
 
-mirrors: 
+script: 
   - py.test --cov i3
 
 after_success:
