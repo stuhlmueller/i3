@@ -22,8 +22,8 @@ def gibbs_probabilities(node, random_world):
     return [1.0]
   
   coparents = []
-  for child in node.children:
-    for parent in child.parents:
+  for child in node.children():
+    for parent in child.parents():
       if parent != node:
         coparents.append(parent)
   coparents = set(coparents)
@@ -37,7 +37,7 @@ def gibbs_probabilities(node, random_world):
     coparent_random_world[node] = value
     children_logprob = sum(
       child.log_probability(coparent_random_world, random_world[child])
-      for child in node.children)
+      for child in node.children())
     gibbs_probs.append(math.exp(node_logprob + children_logprob))
   
   return gibbs_probs

@@ -50,14 +50,23 @@ class TestSprinklerBayesNet(object):
     rng = utils.RandomState(seed=0)
     self.net = sprinkler_net.get(rng)
 
+  def test_topological_order(self):
+    """Check that nodes are sorted in topological order."""
+    assert self.net.sorted_nodes == (
+      self.net.find_node("Rain"),
+      self.net.find_node("Sprinkler"),
+      self.net.find_node("Grass"))
+
   def test_network(self):
+    """Check that marginals are correct when sampling from prior."""
     n = 10000
+    error_margin = 200
     counts = collections.defaultdict(lambda: 0)
     for _ in xrange(n):
       random_world = self.net.sample()
       for (node, value) in random_world.items():
         if value:
           counts[node.name] += 1
-    assert 1800 < counts["Rain"] < 2200
-    assert 3000 < counts["Sprinkler"] < 3400
-    assert 4200 < counts["Grass"] < 4600
+    assert 2000 - error_margin < counts["Rain"] < 2000 + error_margin
+    assert 3220 - error_margin < counts["Sprinkler"] < 3220 + error_margin
+    assert 7964 - error_margin < counts["Grass"] < 7964 + error_margin

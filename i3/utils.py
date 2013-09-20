@@ -1,4 +1,5 @@
 """Utilities for stochastic sampling and probability calculations."""
+from __future__ import division
 
 import itertools
 import math
@@ -18,6 +19,12 @@ def safe_log(num):
   if num == 0.0:
     return NEGATIVE_INFINITY
   return math.log(num)
+
+
+def normalize(array):
+  """Divide array by its sum to make it sum to 1."""
+  Z = np.sum(array)
+  return [i / Z for i in array]
 
 
 def significantly_greater(a, b, alpha=0.05):
