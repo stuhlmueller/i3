@@ -1,8 +1,6 @@
 """Exact inference algorithms for Bayes nets."""
 import math
 
-from scipy import misc
-
 from i3 import utils
 
 
@@ -65,4 +63,4 @@ class Enumerator(object):
           extend_random_world(evidence, node, value),
           rest_nodes)
         log_probs.append(local_logprob + remainder_logprob)
-      return misc.logsumexp(log_probs)
+      return utils.logsumexp(log_probs)

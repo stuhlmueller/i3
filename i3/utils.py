@@ -21,6 +21,15 @@ def safe_log(num):
   return math.log(num)
 
 
+def logsumexp(a):
+  """Compute log of sum of exponentials of array."""
+  array = np.array(a)
+  array_max = array.max(axis=0)
+  out = np.log(np.sum(np.exp(array - array_max), axis=0))
+  out += array_max
+  return out
+
+
 def normalize(array):
   """Divide array by its sum to make it sum to 1."""
   Z = np.sum(array)
