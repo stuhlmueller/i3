@@ -4,6 +4,7 @@ import copy
 import networkx
 
 from i3 import distribution
+from i3 import random_world
 
 
 class BayesNetNode(object):
@@ -47,21 +48,21 @@ class BayesNetNode(object):
     assert self.net
     return sorted(self.net.successors(self))
 
-  def parent_values(self, random_world):
+  def parent_values(self, world):
     """Extract list of parent values from random world."""
-    return [random_world[parent] for parent in self.parents()]
+    return [world[parent] for parent in self.parents()]
 
-  def support(self, random_world=None):
+  def support(self, world=None):
     """Return supported values of node given random world."""
-    assert random_world or self.full_support
-    if random_world:
-      return self.distribution(random_world).support()
+    assert world or self.full_support
+    if world:
+      return self.distribution(world).support()
     else:
       return self.full_support
 
-  def distribution(self, random_world):
+  def distribution(self, world):
     """Return distribution of node conditioned on parents."""
-    return self.get_distribution(*self.parent_values(random_world))
+    return self.get_distribution(*self.parent_values(world))
 
   def markov_blanket(self):
     """Return set of nodes in the Markov blanket of this node."""
@@ -69,28 +70,28 @@ class BayesNetNode(object):
     blanket = list(self.parents()) + list(self.children()) + coparents
     return set(node for node in blanket if node != self)
         
-  def sample(self, random_world):
+  def sample(self, world):
     """Sample a value for this node given parent node values.
 
     Args:
-      random_world: a dictionary mapping nodes to values.
+      world: a random world
 
     Returns:
       a sampled value
     """
-    return self.distribution(random_world).sample()
+    return self.distribution(world).sample()
 
-  def log_probability(self, random_world, node_value):
+  def log_probability(self, world, node_value):
     """Return the log probability of node_value for this node given context.
 
     Args:
-      random_world: a dictionary mapping nodes to values.
+      world: a random world
       node_value: a value for this node
 
     Returns:
       score: a log probability
     """
-    return self.distribution(random_world).log_probability(node_value)
+    return self.distribution(world).log_probability(node_value)
 
 
 class CategoricalNode(BayesNetNode):
@@ -123,34 +124,37 @@ class BayesNet(networkx.DiGraph):
     for node in nodes:
       node.set_net(self)
   
-  def sample(self, random_world=None):
+  def sample(self, world=None):
     """Sample an assignment to all nodes in the network.
 
     Args:
-      random_world: a dictionary mapping (some) nodes to values.
+      world: a random world
 
     Returns:
       a new random world
     """
-    if random_world:
-      random_world = copy.copy(random_world)
+    if world:
+      world = world.copy()
     else:
-      random_world = {}
+      world = random_world.RandomWorld()
     for node in self.sorted_nodes:
-      if not random_world.has_key(node):
-        random_world[node] = node.sample(random_world)
-    return random_world
+      if not node in world:
+        world[node] = node.sample(world)
+    return world
 
-  def log_probability(self, random_world):
+  def log_probability(self, world):
     """Return the total log probability of the given random world.
 
     Args:
-      random_world: a dictionary mapping (some) nodes to values.    
+      world: a random world
+
+    Returns:
+      log probability
     """
-    assert len(random_world) == self.number_of_nodes()
+    assert len(world) == self.number_of_nodes()
     log_prob = 0.0
-    for node in random_world:
-      log_prob += node.log_probability(random_world, random_world[node])
+    for node in world:
+      log_prob += node.log_probability(world, world[node])
     return log_prob
 
   def find_node(self, name):

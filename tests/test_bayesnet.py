@@ -32,14 +32,14 @@ class TestBinaryBayesNet(object):
   def test_network(self):
     """Test a simple Bayesian network."""
     # First random world (prior)
-    random_world = self.net.sample()
-    assert random_world[self.node_1] == True
-    assert random_world[self.node_2] == False
-    assert self.net.log_probability(random_world) == utils.LOG_PROB_1
+    world = self.net.sample()
+    assert world[self.node_1] == True
+    assert world[self.node_2] == False
+    assert self.net.log_probability(world) == utils.LOG_PROB_1
     # Second random world (node 1 fixed)
-    random_world = self.net.sample({self.node_1: False})
-    assert random_world[self.node_2] == True
-    assert self.net.log_probability(random_world) == utils.LOG_PROB_0
+    world = self.net.sample({self.node_1: False})
+    assert world[self.node_2] == True
+    assert self.net.log_probability(world) == utils.LOG_PROB_0
 
 
 class TestSprinklerBayesNet(object):
@@ -63,8 +63,8 @@ class TestSprinklerBayesNet(object):
     error_margin = 200
     counts = collections.defaultdict(lambda: 0)
     for _ in xrange(n):
-      random_world = self.net.sample()
-      for (node, value) in random_world.items():
+      world = self.net.sample()
+      for (node, value) in world.items():
         if value:
           counts[node.name] += 1
     assert 2000 - error_margin < counts["Rain"] < 2000 + error_margin

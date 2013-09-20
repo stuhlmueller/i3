@@ -1,7 +1,8 @@
 """Markov chain inference for Bayesian networks."""
 
-from i3 import utils
 from i3 import gibbs
+from i3 import random_world
+from i3 import utils
 
 
 class MarkovChain(object):
@@ -30,13 +31,13 @@ class RejectionChain(MarkovChain):
   def transition(self):
     accepted = False
     while not accepted:
-      random_world = self.net.sample({})
+      world = self.net.sample(random_world.RandomWorld())
       accepted = True
       for (node, value) in self.evidence.items():
-        if random_world[node] != value:
+        if world[node] != value:
           accepted = False
           break
-    self.state = random_world
+    self.state = world
 
 
 class GibbsChain(MarkovChain):

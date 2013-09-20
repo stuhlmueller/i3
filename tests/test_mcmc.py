@@ -2,6 +2,7 @@
 
 from i3 import exact_inference
 from i3 import mcmc
+from i3 import random_world
 from i3 import utils
 from i3.networks import sprinkler_net
 
@@ -18,7 +19,7 @@ class TestSprinkler(object):
     """Check that inference result is close to truth."""
     grass_node = self.net.find_node("Grass")
     rain_node = self.net.find_node("Rain")
-    evidence = {grass_node: True}
+    evidence = random_world.RandomWorld([grass_node], [True])
     chain = chain_class(self.net, self.rng, evidence)
     chain.initialize_state()
     rain_count = 0

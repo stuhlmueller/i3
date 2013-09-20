@@ -4,12 +4,6 @@ import math
 from i3 import utils
 
 
-def extend_random_world(random_world, node, value):
-  """Return a copy of random_world with node set to value"""
-  assert node not in random_world
-  return dict(random_world.items() + [(node, value)])
-
-
 class Enumerator(object):
   """Exact inference by enumeration."""
 
@@ -31,7 +25,7 @@ class Enumerator(object):
     log_probs = []
     values = query_node.support(evidence)
     for value in values:
-      extended_evidence = extend_random_world(evidence, query_node, value)
+      extended_evidence = evidence.extend(query_node, value)
       log_prob = self.marginalize_nodes(
         extended_evidence, self.net.sorted_nodes)
       log_probs.append(log_prob)
@@ -60,7 +54,7 @@ class Enumerator(object):
       for value in node.support(evidence):
         local_logprob = node.log_probability(evidence, value)
         remainder_logprob = self.marginalize_nodes(
-          extend_random_world(evidence, node, value),
+          evidence.extend(node, value),
           rest_nodes)
         log_probs.append(local_logprob + remainder_logprob)
       return utils.logsumexp(log_probs)
