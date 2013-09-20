@@ -51,7 +51,7 @@ class GibbsChain(MarkovChain):
     super(GibbsChain, self).__init__(net, rng)
     self.evidence = evidence
     self.gibbs_distributions = {}
-    for node in self.net.nodes:
+    for node in self.net.nodes():
       self.gibbs_distributions[node] = gibbs.all_gibbs_distributions(
         node, node.support(), rng)
 
@@ -63,7 +63,7 @@ class GibbsChain(MarkovChain):
       accepted = self.net.log_probability(self.state) != utils.LOG_PROB_0
 
   def transition(self):
-    for node in self.rng.random_permutation(self.net.nodes):
+    for node in self.rng.random_permutation(self.net.nodes()):
       if node not in self.evidence:
         self.update_node(node)
 
@@ -71,6 +71,5 @@ class GibbsChain(MarkovChain):
     self.markov_blanket_vars = sorted(node.markov_blanket())
     markov_blanket_vals = tuple([self.state[var] for var in self.markov_blanket_vars])
     gibbs_dist = self.gibbs_distributions[node][markov_blanket_vals]
-    new_value = gibbs_dist.sample()
-    self.state[node] = new_value
+    self.state[node] = gibbs_dist.sample()
     

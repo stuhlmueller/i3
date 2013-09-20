@@ -1,59 +1,74 @@
 """Data structures for Bayes nets and nodes."""
 
 import copy
+import networkx
 
-from i3 import toposort
+from i3 import distribution
 
 
 class BayesNetNode(object):
   """A single node in a Bayesian network."""
 
-  def __init__(self, name, parents, get_distribution, full_support=None):
-    """Initialize Bayes net node based on parents, sampling/scoring functions.
+  def __init__(self, name, get_distribution, full_support=None, net=None):
+    """Initialize Bayes net node based on sampling/scoring functions, support.
 
     Args:
       name: a string
-      parents: a (potentially empty) list of BayesNetNodes
       get_distribution: maps parent values to distribution
       full_support: list of values. if given, allows looking up node
         support without random world
     """
-    for parent in parents:
-      assert isinstance(parent, BayesNetNode)
     self.name = name
-    self.parents = parents
-    self.sort_parents()    
-    self.children = []
-    self.sort_children()
     self.get_distribution = get_distribution
     self.full_support = full_support
+    self.net = net
 
-  def sort_parents(self):
-    """Sort the list of parent nodes."""
-    self.parents = tuple(sorted(self.parents))
+  def __str__(self):
+    return str(self.name)
 
-  def sort_children(self):
-    """Sort the list of child nodes."""
-    self.children = tuple(sorted(self.children))
+  def __repr__(self):
+    return str(self.name)
+
+  def __cmp__(self, other):
+    return cmp(self.name, other.name)
     
-  def add_parent(self, parent):
-    """Add a new parent node.
+  def set_net(self, net):
+    """Set the Bayes net associated with this node (once)."""
+    assert not self.net
+    self.net = net
 
-    Args:
-      parent: a BayesNetNode
-    """
-    self.parents = tuple(list(self.parents) + [parent])
-    self.sort_parents()
+  def parents(self):
+    """Return sorted list of children (BayesNetNodes)."""
+    assert self.net    
+    return sorted(self.net.predecessors(self))
 
-  def add_child(self, child):
-    """Add a new child node.
+  def children(self):
+    """Return sorted list of parents (BayesNetNodes)."""
+    assert self.net
+    return sorted(self.net.successors(self))
 
-    Args:
-      child: a BayesNetNode
-    """
-    self.children = tuple(list(self.children) + [child])
-    self.sort_children()
+  def parent_values(self, random_world):
+    """Extract list of parent values from random world."""
+    return [random_world[parent] for parent in self.parents()]
 
+  def support(self, random_world=None):
+    """Return supported values of node given random world."""
+    assert random_world or self.full_support
+    if random_world:
+      return self.distribution(random_world).support()
+    else:
+      return self.full_support
+
+  def distribution(self, random_world):
+    """Return distribution of node conditioned on parents."""
+    return self.get_distribution(*self.parent_values(random_world))
+
+  def markov_blanket(self):
+    """Return set of nodes in the Markov blanket of this node."""
+    coparents = [parent for child in self.children() for parent in child.parents()]
+    blanket = list(self.parents()) + list(self.children()) + coparents
+    return set(node for node in blanket if node != self)
+        
   def sample(self, random_world):
     """Sample a value for this node given parent node values.
 
@@ -77,63 +92,37 @@ class BayesNetNode(object):
     """
     return self.distribution(random_world).log_probability(node_value)
 
-  def markov_blanket(self):
-    """Return set of nodes in the Markov blanket of this node."""
-    coparents = [parent for child in self.children for parent in child.parents]
-    blanket = list(self.parents) + list(self.children) + coparents
-    return set(node for node in blanket if node != self)
 
-  def parent_values(self, random_world):
-    """Extract list of parent values from random world."""
-    return [random_world[parent] for parent in self.parents]
-
-  def support(self, random_world=None):
-    """Return supported values of node given random world."""
-    assert random_world or self.full_support
-    if random_world:
-      return self.distribution(random_world).support()
-    else:
-      return self.full_support
-
-  def distribution(self, random_world):
-    """Return distribution of node conditioned on parents."""
-    return self.get_distribution(*self.parent_values(random_world))
-
-  def __str__(self):
-    return str(self.name)
-
-  def __repr__(self):
-    return str(self.name)
-
-  def __cmp__(self, other):
-    return cmp(self.name, other.name)
+class CategoricalNode(BayesNetNode):
+  """A BayesNetNode for categorical distributions."""
+  def __init__(self, name, values, get_probabilities, rng, net=None):
+    get_distribution = (
+      lambda *parent_values:
+      distribution.CategoricalDistribution(
+        values, get_probabilities(*parent_values), rng))
+    super(CategoricalNode, self).__init__(
+      name=name,
+      get_distribution=get_distribution,
+      full_support=values)
 
 
-class BayesNet(object):
+class BayesNet(networkx.DiGraph):
   """A Bayesian network."""
 
-  def __init__(self, nodes):
-    """Initializes Bayesian network given a list of nodes.
+  def __init__(self, name, nodes, edges, **attr):
+    """Initializes Bayesian network.
 
     Args:
+      name: a string
       nodes: a list of BayesNetNodes
     """
-    assert all(isinstance(node, BayesNetNode) for node in nodes)
-    self.nodes = tuple(nodes)
-    self.toposort_nodes()
-
-  def toposort_nodes(self):
-    """Topologically sort nodes in network."""
-    edges = []
-    extra_nodes = []
-    for node in self.nodes:
-      for child in node.children:
-        edges.append( (node, child) )
-      if not node.children:
-        extra_nodes.append(node)
-    sorted_nodes = toposort.toposort(edges, extra_nodes, loops_are_errors=True)
-    self.nodes = tuple(sorted_nodes)
-
+    super(BayesNet, self).__init__(**attr)
+    self.add_nodes_from(nodes)
+    self.add_edges_from(edges)
+    self.sorted_nodes = tuple(networkx.topological_sort(self))
+    for node in nodes:
+      node.set_net(self)
+  
   def sample(self, random_world=None):
     """Sample an assignment to all nodes in the network.
 
@@ -147,7 +136,7 @@ class BayesNet(object):
       random_world = copy.copy(random_world)
     else:
       random_world = {}
-    for node in self.nodes:
+    for node in self.sorted_nodes:
       if not random_world.has_key(node):
         random_world[node] = node.sample(random_world)
     return random_world
@@ -158,7 +147,7 @@ class BayesNet(object):
     Args:
       random_world: a dictionary mapping (some) nodes to values.    
     """
-    assert len(random_world) == len(self.nodes)
+    assert len(random_world) == self.number_of_nodes()
     log_prob = 0.0
     for node in random_world:
       log_prob += node.log_probability(random_world, random_world[node])
@@ -173,18 +162,7 @@ class BayesNet(object):
     Returns:
       a BayesNetNode
     """
-    for node in self.nodes:
+    for node in self.sorted_nodes:
       if node.name == name:
         return node
     raise Exception("Node %s not found!", name)
-
-  def connect(self, parent, child):
-    """Add an edge from parent to child.
-
-    Args:
-      parent: a BayesNetNode
-      child: a BayesNetNode
-    """
-    parent.add_child(child)
-    child.add_parent(parent)
-    self.toposort_nodes()

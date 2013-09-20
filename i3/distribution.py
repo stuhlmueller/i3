@@ -40,8 +40,7 @@ class CategoricalDistribution(DiscreteDistribution):
       probabilities: an iterable of probabilites
     """
     super(CategoricalDistribution, self).__init__(rng)
-    total = sum(probabilities)
-    probabilities = [prob / total for prob in probabilities]
+    probabilities = utils.normalize(probabilities)
     self._sampler = rng.categorical_sampler(values, probabilities)
     self._value_to_logprob = collections.defaultdict(
       lambda: utils.LOG_PROB_0)
