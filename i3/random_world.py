@@ -11,6 +11,9 @@ class RandomWorld(object):
   def __contains__(self, key):
     return key in self.data
 
+  def __delitem__(self, key):
+    del self.data[key]
+
   def __getitem__(self, key):
     return self.data[key]    
 
