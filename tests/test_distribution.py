@@ -15,8 +15,8 @@ def test_categorical_distribution():
     probabilities=[.3, .7],
     rng=rng)
   samples = [dist.sample() for _ in range(10000)]
-  assert 2000 < samples.count("a") < 4000
-  assert 6000 < samples.count("b") < 8000
+  utils.assert_in_interval(samples.count("a"), .3, 10000, .95)
+  utils.assert_in_interval(samples.count("b"), .7, 10000, .95)
   np.testing.assert_almost_equal(
     .3, math.exp(dist.log_probability("a")))
   np.testing.assert_almost_equal(

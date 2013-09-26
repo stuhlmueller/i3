@@ -23,8 +23,8 @@ class TestSprinkler(object):
     chain = chain_class(self.net, self.rng, evidence)
     chain.initialize_state()
     rain_count = 0
-    N = 100000
-    for _ in xrange(N):
+    num_samples = 100000
+    for _ in xrange(num_samples):
       chain.transition()
       if chain.state[rain_node]:
         rain_count += 1
@@ -32,7 +32,7 @@ class TestSprinkler(object):
     exact_dist = enumerator.marginalize(evidence, rain_node)
     rain_prob = exact_dist[True]
     print rain_prob, rain_count
-    assert rain_prob*N - 1000 < rain_count <  rain_prob*N + 1000
+    utils.assert_in_interval(rain_count, rain_prob, num_samples, .95)
 
   def test_rejection(self):
     self.run_sprinkler(mcmc.RejectionChain)
