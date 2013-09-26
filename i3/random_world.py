@@ -1,5 +1,6 @@
 """Random worlds map BayesNetNodes to values."""
 import itertools
+import pprint
 
 
 class RandomWorld(object):
@@ -32,6 +33,12 @@ class RandomWorld(object):
 
   def __setitem__(self, key, value):
     self.data[key] = value
+
+  def __str__(self):
+    return pprint.pformat(self.data)
+
+  def __repr__(self):
+    return str(self)
 
   def copy(self):
     """Return a copy of this random world."""
