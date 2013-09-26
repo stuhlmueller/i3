@@ -53,8 +53,7 @@ class GibbsChain(MarkovChain):
     self.evidence = evidence
     self.gibbs_distributions = {}
     for node in self.net.nodes():
-      self.gibbs_distributions[node] = gibbs.all_gibbs_distributions(
-        node, node.support, rng)
+      self.gibbs_distributions[node] = gibbs.all_gibbs_distributions(node, rng)
 
   def initialize_state(self):
     """Initialize from prior, set evidence nodes."""

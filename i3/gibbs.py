@@ -56,11 +56,11 @@ def gibbs_distribution(node, world, rng):
   return gibbs_dist
 
 
-def all_gibbs_distributions(node, support, rng):
+def all_gibbs_distributions(node, rng):
   """Get mapping from Markov blanket vals (sorted by var) to Gibbs dists."""
   markov_blanket_vars = sorted(node.markov_blanket)
   gibbs_dists = {}
-  for world in random_world.all_random_worlds(markov_blanket_vars, support):
+  for world in random_world.all_random_worlds(markov_blanket_vars):
     gibbs_dist = gibbs_distribution(node, world, rng)
     markov_blanket_vals = tuple(
       [world[var] for var in markov_blanket_vars])

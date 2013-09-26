@@ -59,16 +59,15 @@ class RandomWorld(object):
     return self.data.items()
 
 
-def all_random_worlds(variables, support):
+def all_random_worlds(variables):
   """Return iterable over all possible random worlds.
 
   Args:
     variables: a list of variables
-    support: a list of possible values
 
   Returns:
-    iterable of dictionaries mapping variables to values
+    iterable of random worlds mapping variables to values
   """
-  for values in itertools.product(*[support]*len(variables)):
+  for values in itertools.product(*[var.support for var in variables]):
     yield RandomWorld(variables, values)
     
