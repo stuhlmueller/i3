@@ -34,8 +34,12 @@ NETWORK_PROBABILITIES = [
   ([0, 1, 1], 0.436 * 0.872 * 0.000),        
 ]
 
+EVIDENCE_STRING = """2
+2 1 0 2 1
+1 2 0"""
 
-def test_uai_import():
+
+def test_network_import():
   """Check that probabilities for imported Bayes net are as expected."""
   net = uai_import.network_from_string(NETWORK_STRING, utils.RandomState())
   assert len(net.sample()) == 3
@@ -47,3 +51,13 @@ def test_uai_import():
     np.testing.assert_almost_equal(
       net.log_probability(world),
       utils.safe_log(prob))
+
+
+def test_evidence_import():
+  """Check that imported random worlds look like expected."""
+  worlds = uai_import.evidence_from_string(EVIDENCE_STRING)
+  assert len(worlds[0]) == 2
+  assert worlds[0][1] == 0
+  assert worlds[0][2] == 1
+  assert len(worlds[1]) == 1
+  assert worlds[1][2] == 0

@@ -15,7 +15,7 @@ LOG_PROB_1 = 0.0
 
 def pop_n(stack, n):
   """Return and remove the first n elements from stack."""
-  return [stack.pop(0) for _ in xrange(n)]
+  return [stack.popleft() for _ in xrange(n)]
 
 
 def safe_log(num):
