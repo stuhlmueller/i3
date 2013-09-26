@@ -30,6 +30,7 @@ class RejectionChain(MarkovChain):
 
   def transition(self):
     accepted = False
+    world = None
     while not accepted:
       world = self.net.sample(random_world.RandomWorld())
       accepted = True
