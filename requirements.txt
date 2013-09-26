@@ -5,3 +5,4 @@ pytest-cov>=1.6
 numpy>=1.6.1
 networkx>=1.8.1
 scipy>=0.9.0
+funcparserlib>=0.3.6
