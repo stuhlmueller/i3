@@ -51,6 +51,11 @@ def significantly_greater(a, b, alpha=0.05):
   return p_value < alpha and t > 0  
 
 
+def is_sorted(lst):
+  """Return True if list is sorted, False otherwise."""
+  return all(lst[i] <= lst[i+1] for i in xrange(len(lst)-1))
+
+
 class RandomState(np.random.RandomState):
   """Extend numpy's RandomState with more sampling functions."""
 
