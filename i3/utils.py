@@ -13,6 +13,11 @@ LOG_PROB_0 = NEGATIVE_INFINITY
 LOG_PROB_1 = 0.0
 
 
+def pop_n(stack, n):
+  """Return and remove the first n elements from stack."""
+  return [stack.pop(0) for _ in xrange(n)]
+
+
 def safe_log(num):
   """Like math.log, but returns -infinity on 0."""
   if num == 0.0:
