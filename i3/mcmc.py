@@ -6,7 +6,6 @@ from i3 import utils
 
 
 class MarkovChain(object):
-
   def __init__(self, net, rng):
     self.net = net
     self.rng = rng
@@ -55,7 +54,7 @@ class GibbsChain(MarkovChain):
     self.gibbs_distributions = {}
     for node in self.net.nodes():
       self.gibbs_distributions[node] = gibbs.all_gibbs_distributions(
-        node, node.support(), rng)
+        node, node.support, rng)
 
   def initialize_state(self):
     """Initialize from prior, set evidence nodes."""
@@ -70,8 +69,7 @@ class GibbsChain(MarkovChain):
         self.update_node(node)
 
   def update_node(self, node):
-    self.markov_blanket_vars = sorted(node.markov_blanket())
-    markov_blanket_vals = tuple([self.state[var] for var in self.markov_blanket_vars])
+    markov_blanket_vals = tuple([self.state[var] for var in node.markov_blanket])
     gibbs_dist = self.gibbs_distributions[node][markov_blanket_vals]
     self.state[node] = gibbs_dist.sample()
     

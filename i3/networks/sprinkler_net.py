@@ -4,36 +4,35 @@ from i3 import bayesnet
 
 
 def get(rng):
-  rain_node = bayesnet.CategoricalNode(
-    name="Rain",
-    values=[True, False],
-    get_probabilities=lambda: [.2, .8],
-    rng=rng)
-  
-  sprinkler_node = bayesnet.CategoricalNode(
-    name="Sprinkler",
-    values=[True, False],
-    get_probabilities=lambda rain: [0.01, 0.99] if rain else [0.4, 0.6],
-    rng=rng)
-
-  def get_grass_probabilities(rain, sprinkler):
-    grass_cpt = {
-      (False, False): [0.8, 0.2],
-      (False, True): [0.7, 0.3],
-      (True, False): [0.85, 0.15],
-      (True, True): [0.9, 0.1]
-    }
-    return grass_cpt[(sprinkler, rain)]
-    
-  grass_node = bayesnet.CategoricalNode(
-    name="Grass",
-    values=[True, False],
-    get_probabilities=get_grass_probabilities,
-    rng=rng)
-
+  """Return three-node sprinkler Bayes net."""
+  rain_node = bayesnet.BayesNetNode(
+    index=0,
+    domain_size=2,
+    cpt_probabilities=[.8, .2],
+    name="Rain")
+  sprinkler_node = bayesnet.BayesNetNode(
+    index=1,
+    domain_size=2,
+    cpt_probabilities=[
+      0.01, 0.99,
+      0.6, 0.4],
+    name="Sprinkler")
+  grass_node = bayesnet.BayesNetNode(
+    index=2,
+    domain_size=2,
+    cpt_probabilities=[
+      0.9, 0.1,
+      0.3, 0.7,
+      0.15, 0.85,
+      0.05, 0.95],
+    name="Grass")
   nodes = [rain_node, sprinkler_node, grass_node]
   edges = [(rain_node, sprinkler_node),
            (rain_node, grass_node),
-           (sprinkler_node, grass_node)]
-  net = bayesnet.BayesNet("Sprinkler network", nodes, edges)
+           (sprinkler_node, grass_node)]  
+  net = bayesnet.BayesNet(
+    rng=rng,
+    nodes=nodes,
+    edges=edges)
+  net.compile()
   return net

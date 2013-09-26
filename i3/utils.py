@@ -51,6 +51,21 @@ def significantly_greater(a, b, alpha=0.05):
   return p_value < alpha and t > 0  
 
 
+def assert_in_interval(k, p, n, confidence=.95):
+  """Check that observed number of heads is in confidence interval.
+  
+  Args:
+    k: observed count of heads
+    p: true probability of heads
+    n: number of coin flips
+    confidence: the probability mass that we want to cover
+
+  FIXME: Take a more principled approach.
+  """
+  k_min, k_max = n * np.array(stats.beta(p * n, (1-p) * n).interval(confidence))
+  assert k_min <= k <= k_max
+
+
 def is_sorted(lst):
   """Return True if list is sorted, False otherwise."""
   return all(lst[i] <= lst[i+1] for i in xrange(len(lst)-1))

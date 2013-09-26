@@ -4,7 +4,6 @@ import math
 
 from i3 import distribution
 from i3 import random_world
-from i3 import utils
 
 
 def gibbs_probabilities(node, world):
@@ -18,13 +17,9 @@ def gibbs_probabilities(node, world):
   Returns:
     a list of probabilities, one for each value in the support of node.
   """
-  support = node.support(world)
-  if len(support) == 1:
-    return [1.0]
-  
   coparents = []
-  for child in node.children():
-    for parent in child.parents():
+  for child in node.children:
+    for parent in child.parents:
       if parent != node:
         coparents.append(parent)
   coparents = set(coparents)
@@ -33,12 +28,12 @@ def gibbs_probabilities(node, world):
 
   gibbs_probs = []
   
-  for value in support:
+  for value in node.support:
     node_logprob = node.log_probability(world, value)
     coparent_world[node] = value
     children_logprob = sum(
       child.log_probability(coparent_world, world[child])
-      for child in node.children())
+      for child in node.children)
     gibbs_probs.append(math.exp(node_logprob + children_logprob))
   
   return gibbs_probs
@@ -57,13 +52,13 @@ def gibbs_distribution(node, world, rng):
   """
   gibbs_probs = gibbs_probabilities(node, world)
   gibbs_dist = distribution.CategoricalDistribution(
-    node.support(world), gibbs_probs, rng)
+    node.support, gibbs_probs, rng)
   return gibbs_dist
 
 
 def all_gibbs_distributions(node, support, rng):
   """Get mapping from Markov blanket vals (sorted by var) to Gibbs dists."""
-  markov_blanket_vars = sorted(node.markov_blanket())
+  markov_blanket_vars = sorted(node.markov_blanket)
   gibbs_dists = {}
   for world in random_world.all_random_worlds(markov_blanket_vars, support):
     gibbs_dist = gibbs_distribution(node, world, rng)

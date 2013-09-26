@@ -23,11 +23,11 @@ class Enumerator(object):
     """
     assert query_node not in evidence
     log_probs = []
-    values = query_node.support(evidence)
+    values = query_node.support
     for value in values:
       extended_evidence = evidence.extend(query_node, value)
       log_prob = self.marginalize_nodes(
-        extended_evidence, self.net.sorted_nodes)
+        extended_evidence, self.net.nodes_by_topology)
       log_probs.append(log_prob)
     probs = utils.normalize([math.exp(log_prob) for log_prob in log_probs])
     return dict(zip(values, probs))
@@ -51,7 +51,7 @@ class Enumerator(object):
       return local_logprob + remainder_logprob
     else:
       log_probs = []
-      for value in node.support(evidence):
+      for value in node.support:
         local_logprob = node.log_probability(evidence, value)
         remainder_logprob = self.marginalize_nodes(
           evidence.extend(node, value),
