@@ -26,3 +26,4 @@ def test_random_world():
     assert node in world
     assert world[node] == value
   assert sorted(list(world)) == ["A", "B", "C"]
+  assert str(world) == repr(world)
