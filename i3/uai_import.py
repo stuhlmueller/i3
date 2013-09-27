@@ -126,17 +126,17 @@ def evaluate_network(rng, stack):
   return net
 
 
-def evaluate_evidence(stack):
+def evaluate_evidence(stack, num_nodes):
   """Turn stack of (UAI) evidence numbers into list of random worlds."""
   samples = []
   num_samples = stack.popleft()
   for i in range(num_samples):
-    num_variables = stack.popleft()
-    world = random_world.RandomWorld()
-    for j in range(num_variables):
+    num_evidence_variables = stack.popleft()
+    world = random_world.RandomWorld(num_nodes)
+    for j in range(num_evidence_variables):
       index = stack.popleft()
       value = stack.popleft()
-      world[index] = value
+      world.set_index_value(index, value)
     samples.append(world)
   assert not stack
   return samples
@@ -149,10 +149,10 @@ def network_from_string(s, rng):
   return net  
 
 
-def evidence_from_string(s):
+def evidence_from_string(s, num_nodes):
   """Parse (UAI) evidence string to evidence (list of random worlds)."""
   stack = parse_evidence(s)
-  random_worlds = evaluate_evidence(stack)
+  random_worlds = evaluate_evidence(stack, num_nodes)
   return random_worlds
 
 

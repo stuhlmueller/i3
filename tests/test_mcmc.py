@@ -19,7 +19,8 @@ class TestSprinkler(object):
     """Check that inference result is close to truth."""
     grass_node = self.net.find_node("Grass")
     rain_node = self.net.find_node("Rain")
-    evidence = random_world.RandomWorld([grass_node], [True])
+    evidence = random_world.RandomWorld(3)
+    evidence[grass_node] = 1
     chain = chain_class(self.net, self.rng, evidence)
     chain.initialize_state()
     rain_count = 0
@@ -30,7 +31,7 @@ class TestSprinkler(object):
         rain_count += 1
     enumerator = exact_inference.Enumerator(self.net)
     exact_dist = enumerator.marginalize(evidence, rain_node)
-    rain_prob = exact_dist[True]
+    rain_prob = exact_dist[1]
     print rain_prob, rain_count
     utils.assert_in_interval(rain_count, rain_prob, num_samples, .95)
 

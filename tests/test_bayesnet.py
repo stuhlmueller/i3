@@ -23,9 +23,10 @@ class TestBinaryBayesNet(object):
   
   def test_nodes(self):
     """Test a single BayesNetNode."""
-    assert self.node_1.sample({}) == 1
-    assert self.node_1.log_probability({}, 0) == utils.LOG_PROB_0    
-    assert self.node_1.log_probability({}, 1) == utils.LOG_PROB_1
+    world = random_world.RandomWorld(2)
+    assert self.node_1.sample(world) == 1
+    assert self.node_1.log_probability(world, 0) == utils.LOG_PROB_0    
+    assert self.node_1.log_probability(world, 1) == utils.LOG_PROB_1
 
   def test_markov_blanket(self):
     """Check that Markov blanket is correct."""
@@ -40,7 +41,9 @@ class TestBinaryBayesNet(object):
     assert world[self.node_2] == 2
     assert self.net.log_probability(world) == utils.LOG_PROB_1
     # Second random world (node 1 fixed)
-    world = self.net.sample({self.node_1: 0})
+    given_world = random_world.RandomWorld(2)
+    given_world[self.node_1] = 0
+    world = self.net.sample(given_world)
     assert world[self.node_2] == 1
     assert self.net.log_probability(world) == utils.LOG_PROB_0
 
@@ -63,9 +66,8 @@ class TestSprinklerBayesNet(object):
 
   def test_nodes(self):
     """Check sampling and probability functions of nodes."""
-    world = random_world.RandomWorld(
-      nodes=[self.rain_node],
-      values=[1])
+    world = random_world.RandomWorld(3)
+    world[self.rain_node] = 1
     np.testing.assert_almost_equal(
       math.exp(self.sprinkler_node.log_probability(world, 1)),
       0.4)
@@ -75,9 +77,9 @@ class TestSprinklerBayesNet(object):
       if value == 1:
         sprinkler_count += 1
     utils.assert_in_interval(sprinkler_count, .4, self.n, .95)
-    world = random_world.RandomWorld(
-      nodes=[self.rain_node, self.sprinkler_node],
-      values=[0, 1])
+    world = random_world.RandomWorld(3)
+    world[self.rain_node] = 0
+    world[self.sprinkler_node] = 1
     np.testing.assert_almost_equal(
       math.exp(self.grass_node.log_probability(world, 1)),
       0.7)
@@ -94,10 +96,10 @@ class TestSprinklerBayesNet(object):
     counts = collections.defaultdict(lambda: 0)
     for _ in xrange(self.n):
       world = self.net.sample()
-      for (node, value) in world.items():
+      for (i, value) in enumerate(world):
         assert value in [0, 1]
         if value == 1:
-          counts[node.name] += 1
+          counts[self.net.nodes_by_index[i].name] += 1
     utils.assert_in_interval(counts["Rain"], .2, self.n, .95)
     utils.assert_in_interval(counts["Sprinkler"], .872, self.n, .95)
     utils.assert_in_interval(counts["Grass"], .7332, self.n, .95)        

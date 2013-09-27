@@ -17,25 +17,15 @@ def gibbs_probabilities(node, world):
   Returns:
     a list of probabilities, one for each value in the support of node.
   """
-  coparents = []
-  for child in node.children:
-    for parent in child.parents:
-      if parent != node:
-        coparents.append(parent)
-  coparents = set(coparents)
-  coparent_world = random_world.RandomWorld(
-    coparents, [world[coparent] for coparent in coparents])
-
+  temp_world = world.copy()
   gibbs_probs = []
-  
   for value in node.support:
     node_logprob = node.log_probability(world, value)
-    coparent_world[node] = value
+    temp_world[node] = value
     children_logprob = sum(
-      child.log_probability(coparent_world, world[child])
+      child.log_probability(temp_world, world[child])
       for child in node.children)
     gibbs_probs.append(math.exp(node_logprob + children_logprob))
-  
   return gibbs_probs
 
 
@@ -58,11 +48,12 @@ def gibbs_distribution(node, world, rng):
 
 def all_gibbs_distributions(node, rng):
   """Get mapping from Markov blanket vals (sorted by var) to Gibbs dists."""
-  markov_blanket_vars = sorted(node.markov_blanket)
+  markov_blanket_nodes = sorted(node.markov_blanket)
   gibbs_dists = {}
-  for world in random_world.all_random_worlds(markov_blanket_vars):
+  for world in random_world.all_random_worlds(
+      markov_blanket_nodes, node.net.node_count):
     gibbs_dist = gibbs_distribution(node, world, rng)
     markov_blanket_vals = tuple(
-      [world[var] for var in markov_blanket_vars])
+      [world[n] for n in markov_blanket_nodes])
     gibbs_dists[markov_blanket_vals] = gibbs_dist
   return gibbs_dists        

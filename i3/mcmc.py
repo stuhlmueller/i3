@@ -29,14 +29,15 @@ class RejectionChain(MarkovChain):
 
   def transition(self):
     accepted = False
-    world = None
+    world = random_world.RandomWorld(self.net.node_count)
     while not accepted:
-      world = self.net.sample(random_world.RandomWorld())
+      world = self.net.sample(world, overwrite=True)
       accepted = True
-      for (node, value) in self.evidence.items():
-        if world[node] != value:
-          accepted = False
-          break
+      for (i, value) in enumerate(self.evidence):
+        if value != -1:
+          if world.get_index_value(i) != value:
+            accepted = False
+            break
     self.state = world
 
 
@@ -59,7 +60,7 @@ class GibbsChain(MarkovChain):
     """Initialize from prior, set evidence nodes."""
     accepted = False
     while not accepted:
-      self.state = self.net.sample(self.evidence)
+      self.state = self.net.sample(self.evidence.copy())
       accepted = self.net.log_probability(self.state) != utils.LOG_PROB_0
 
   def transition(self):

@@ -1,29 +1,33 @@
 """Random worlds map BayesNetNodes to values."""
 import itertools
 import pprint
+import numpy as np
 
 
 class RandomWorld(object):
   """A mapping from BayesNetNodes to values."""
 
-  def __bool__(self):
-    return bool(self.data)
+  def __nonzero__(self):
+    return not np.all(self.data == -1)
 
-  def __contains__(self, key):
-    return key in self.data
+  def __contains__(self, node):
+    return self.data[node.index] != -1
 
-  def __delitem__(self, key):
-    del self.data[key]
+  def __delitem__(self, node):
+    self.data[node.index] = -1
 
-  def __getitem__(self, key):
-    return self.data[key]    
+  def __getitem__(self, node):
+    return self.data[node.index]
 
-  def __init__(self, nodes=None, values=None):
-    if nodes or values:
-      assert len(nodes) == len(values)
-      self.data = dict(zip(nodes, values))
+  def __init__(self, obj):
+    """
+    Args:
+      x: either array of values or sizes of world
+    """
+    if hasattr(obj, "__iter__"):
+      self.data = np.array(obj, dtype=np.int8)
     else:
-      self.data = {}
+      self.data = np.ones(obj, dtype=np.int8) * -1
 
   def __iter__(self):
     return self.data.__iter__()
@@ -31,43 +35,48 @@ class RandomWorld(object):
   def __len__(self):
     return len(self.data)    
 
-  def __setitem__(self, key, value):
-    self.data[key] = value
+  def __setitem__(self, node, value):
+    self.data[node.index] = value
 
   def __str__(self):
-    return pprint.pformat(self.data)
+    return "{{W {}}}".format(list(self.data))
 
   def __repr__(self):
     return str(self)
 
   def copy(self):
     """Return a copy of this random world."""
-    items = self.data.items()
-    nodes = [node for (node, value) in items]
-    values = [value for (node, value) in items]
-    return RandomWorld(nodes, values)
+    return RandomWorld(self.data.copy())
 
   def extend(self, node, value):
     """Return an extended copy of this random world."""
-    assert node not in self.data
+    assert node not in self
     copy_world = self.copy()
     copy_world[node] = value
     return copy_world
 
-  def items(self):
-    """Return a list of key-value pairs."""
-    return self.data.items()
+  def set_index_value(self, index, value):
+    """Directly set world value using index."""
+    self.data[index] = value
+
+  def get_index_value(self, index):
+    """Directly get world value using index."""
+    return self.data[index]
 
 
-def all_random_worlds(variables):
+def all_random_worlds(nodes, num_nodes_total):
   """Return iterable over all possible random worlds.
 
   Args:
-    variables: a list of variables
+    nodes: a list of nodes
+    num_nodes_total: total number of nodes in network
 
   Returns:
-    iterable of random worlds mapping variables to values
+    iterable of random worlds mapping nodes to values
   """
-  for values in itertools.product(*[var.support for var in variables]):
-    yield RandomWorld(variables, values)
+  for values in itertools.product(*[node.support for node in nodes]):
+    world = RandomWorld(num_nodes_total)
+    for (node, value) in zip(nodes, values):
+      world[node] = value
+    yield world
     

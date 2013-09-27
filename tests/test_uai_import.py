@@ -45,9 +45,7 @@ def test_network_import():
   assert len(net.sample()) == 3
   for (values, prob) in NETWORK_PROBABILITIES:
     print values, prob
-    world = random_world.RandomWorld(
-      nodes=net.nodes_by_index,
-      values=values)
+    world = random_world.RandomWorld(values)
     np.testing.assert_almost_equal(
       net.log_probability(world),
       utils.safe_log(prob))
@@ -55,9 +53,12 @@ def test_network_import():
 
 def test_evidence_import():
   """Check that imported random worlds look like expected."""
-  worlds = uai_import.evidence_from_string(EVIDENCE_STRING)
-  assert len(worlds[0]) == 2
-  assert worlds[0][1] == 0
-  assert worlds[0][2] == 1
-  assert len(worlds[1]) == 1
-  assert worlds[1][2] == 0
+  worlds = uai_import.evidence_from_string(EVIDENCE_STRING, num_nodes=3)
+  assert len(worlds[0]) == 3
+  assert worlds[0].get_index_value(0) == -1  
+  assert worlds[0].get_index_value(1) == 0
+  assert worlds[0].get_index_value(2) == 1
+  assert len(worlds[1]) == 3
+  assert worlds[1].get_index_value(0) == -1
+  assert worlds[1].get_index_value(1) == -1 
+  assert worlds[1].get_index_value(2) == 0

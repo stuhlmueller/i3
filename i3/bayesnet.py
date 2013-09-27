@@ -210,14 +210,14 @@ class BayesNet(networkx.DiGraph):
       node.compile()
     self.compiled = True
 
-  def sample(self, world=None):
-    """Sample a random world, potentially based on existing world."""
+  def sample(self, world=None, overwrite=False):
+    """Sample a random world, potentially based on existing world. Destructive!"""
     if world:
-      world = world.copy()
+      assert len(world) == self.node_count
     else:
-      world = random_world.RandomWorld()
+      world = random_world.RandomWorld(self.node_count)
     for node in self.nodes_by_topology:
-      if not node in world:
+      if overwrite or node not in world:
         world[node] = node.sample(world)
     return world
 
@@ -225,7 +225,7 @@ class BayesNet(networkx.DiGraph):
     """Return the log probability of this network returning the given world."""
     assert len(world) == self.node_count
     log_prob = 0.0
-    for node in world:
+    for node in self.nodes_by_index:
       log_prob += node.log_probability(world, world[node])
     return log_prob
 
