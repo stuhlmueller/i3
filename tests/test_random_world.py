@@ -16,6 +16,8 @@ def test_random_world():
   assert "A" not in world
   assert world
   assert list(world) == ["B"]
+  del world["B"]
+  assert "B" not in world
   # Nonempty world
   nodes = ["A", "B", "C"]
   values = [True, False, 3]
