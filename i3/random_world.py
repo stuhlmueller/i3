@@ -6,7 +6,7 @@ import pprint
 class RandomWorld(object):
   """A mapping from BayesNetNodes to values."""
 
-  def __bool__(self):
+  def __nonzero__(self):
     return bool(self.data)
 
   def __contains__(self, key):
