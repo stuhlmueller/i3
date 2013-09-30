@@ -3,6 +3,7 @@ from __future__ import division
 
 import math
 import numpy as np
+import operator
 from scipy import stats
 
 
@@ -71,11 +72,6 @@ def assert_in_interval(k, p, n, confidence=.95):
   assert k_min <= k <= k_max
 
 
-def is_sorted(lst):
-  """Return True if list is sorted, False otherwise."""
-  return all(lst[i] <= lst[i+1] for i in xrange(len(lst)-1))
-
-
 class RandomState(np.random.RandomState):
   """Extend numpy's RandomState with more sampling functions."""
 
@@ -95,3 +91,30 @@ class RandomState(np.random.RandomState):
       array = np.array(obj)
     self.shuffle(array)
     return array
+
+
+def lexicographic_combinations(domains):
+  """Returns lexicographically ordered combinations of values in domains.
+
+  Args:
+    domains: a list of lists [A, B, C, ...]
+
+  Returns:
+    a lexicographically ordered list of lists of values
+    [[a0, b0, c0], [a0, b0, c1], ..., [an, bn, cn]]
+  """
+  if len(domains) == 1:
+    for value in domains[0]:
+      yield [value]
+  else:
+    for value in domains[0]:
+      for lst in lexicographic_combinations(domains[1:]):
+        yield [value] + lst    
+
+        
+def reordered_list(old_order, new_order, old_list):
+  """Given old and new ordering, return list with new ordering."""
+  assert set(old_order) == set(new_order)
+  assert len(old_order) == len(old_list)
+  index_to_element = dict(zip(old_order, old_list))
+  return [index_to_element[i] for i in new_order]
