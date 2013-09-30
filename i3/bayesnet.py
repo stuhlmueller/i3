@@ -12,7 +12,8 @@ from i3 import random_world
 class BayesNetNode(object):
   """Categorical Bayes net node."""
 
-  def __init__(self, index, domain_size=None, cpt_probabilities=None, name=None):
+  def __init__(self, index, domain_size=None, cpt_probabilities=None,
+               name=None):
     """Initializes Bayes net node.
 
     Args:
@@ -70,14 +71,16 @@ class BayesNetNode(object):
     assert self._cpt_probabilities
     assert self.net
     distributions = []
-    parent_value_product = itertools.product(*[parent.support for parent in self.parents])
+    parent_value_product = itertools.product(
+      *[parent.support for parent in self.parents])
     j = 0
     for i, parent_values in enumerate(parent_value_product):
       values = self.support
       j = i * self.domain_size
       probabilities = self._cpt_probabilities[j:j+self.domain_size]
       distributions.append(
-        distribution.CategoricalDistribution(values, probabilities, self.net.rng))
+        distribution.CategoricalDistribution(
+          values, probabilities, self.net.rng))
       world = dict(zip(self.parents, parent_values))
       assert(self._distribution_index(world) == i)
     assert j + self.domain_size == len(self._cpt_probabilities)
