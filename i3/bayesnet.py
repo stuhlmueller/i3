@@ -18,7 +18,14 @@ class BayesNetNode(object):
     Args:
       index: Bayesnet-unique identifier (integer)
       domain_size: number of elements in support
-      cpt_probabilities: a list of cpt probabilities in UAI format
+      cpt_probabilities: a list of ordered cpt probabilities:
+        - node ordering: parent nodes sorted by index (low to high), then self.
+            e.g. [parent_5, parent_7, parent_10, node_8]
+        - probability ordering: lexicographic based on node ordering.
+            e.g. p(node_8=0 | parent_5=0, parent_7=0, parent_10=0)
+                 p(node_8=1 | parent_5=0, parent_7=0, parent_10=0),
+                 ...
+                 p(node_8=1 | parent_5=1, parent_7=1, parent_10=1)
       name: a string (optional)
     """
     self.index = index
@@ -191,7 +198,7 @@ class BayesNet(networkx.DiGraph):
 
   def __str__(self):
     if not self.nodes_by_index:
-      return "<<>>"
+      return "<<BN>>"
     s = "<<BN\n"
     for node in self.nodes_by_topology or self.nodes_by_index:
       s += "  {} -> {}  {} {}\n".format(
