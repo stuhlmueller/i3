@@ -1,10 +1,26 @@
 """Tests for Bayes net samplers."""
+import pytest
 
 from i3 import exact_inference
 from i3 import mcmc
 from i3 import random_world
 from i3 import utils
 from i3.networks import sprinkler_net
+
+
+class TestMarkovChain(object):
+  """Elementary Markov chain tests."""
+  
+  def setup(self):
+    self.rng = utils.RandomState(seed=0)
+    self.net = sprinkler_net.get(self.rng)
+
+  def test(self):
+    chain = mcmc.MarkovChain(self.net, self.rng)
+    with pytest.raises(NotImplementedError):
+      chain.initialize_state()
+    with pytest.raises(NotImplementedError):
+      chain.transition()
 
 
 class TestSprinkler(object):

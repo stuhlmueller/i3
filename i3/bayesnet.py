@@ -255,8 +255,3 @@ class BayesNet(networkx.DiGraph):
       if node.name == name:
         return node
     raise ValueError("Node with name {} not found!", name)
-
-
-if __name__ == "__main__":
-  import doctest
-  doctest.testmod()

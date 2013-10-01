@@ -1,10 +1,23 @@
 """Test probability distributions."""
+import pytest
 
 import math
 import numpy as np
 
 from i3 import distribution
 from i3 import utils
+
+
+def test_discrete_distribution():
+  """Elementary tests for discrete distribution class."""
+  rng = utils.RandomState(0)
+  dist = distribution.DiscreteDistribution(rng)
+  with pytest.raises(NotImplementedError):
+    dist.sample()
+  with pytest.raises(NotImplementedError):
+    dist.log_probability(None)
+  with pytest.raises(NotImplementedError):
+    dist.support()
 
 
 def test_categorical_distribution():
