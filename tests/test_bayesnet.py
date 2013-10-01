@@ -5,6 +5,7 @@ import numpy as np
 import math
 import pytest
 
+from i3 import bayesnet
 from i3 import random_world
 from i3 import utils
 from i3.networks import binary_net
@@ -16,8 +17,8 @@ class TestBinaryBayesNet(object):
 
   def setup(self):
     """Set up random stream and network."""
-    rng = utils.RandomState(seed=0)
-    self.net = binary_net.get(rng)
+    self.rng = utils.RandomState(seed=0)
+    self.net = binary_net.get(self.rng)
     self.node_1 = self.net.nodes_by_index[0]
     self.node_2 = self.net.nodes_by_index[1]
   
@@ -47,6 +48,8 @@ class TestBinaryBayesNet(object):
   def test_representation(self):
     """Check that calling string methods works."""
     assert str(self.net) == repr(self.net)
+    empty_net = bayesnet.BayesNet(self.rng)
+    assert repr(empty_net) == "<<BN>>"
 
 
 class TestSprinklerBayesNet(object):
