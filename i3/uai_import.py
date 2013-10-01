@@ -190,7 +190,6 @@ def network_eval(stack, rng):
   
   for index in range(num_vars):
     domain_size = stack.popleft()
-    print "Adding node {} ({} elements in support)".format(index, domain_size)
     node = bayesnet.BayesNetNode(index)
     node.set_domain_size(domain_size)
     net.add_node(node)
@@ -204,7 +203,6 @@ def network_eval(stack, rng):
     clique_order[node] = utils.pop_n(stack, clique_size)
     for index in clique_order[node]:
       if index != node.index:
-        print "Adding edge from node {} to node {}".format(index, node.index)
         net.add_edge(net.nodes_by_index[index], node)
   
   for node in net.nodes_by_index:
