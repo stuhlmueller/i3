@@ -63,7 +63,7 @@ def remove_ignored(tokens):
   return [t for t in tokens if not isinstance(t, parser._Ignored)]
 
 
-def number_parser():
+def get_number_parser():
   """Return parser that reads (float and int) numbers with whitespace."""
   number = (parser.some(lambda tok: tok.type == 'NUMBER')
             >> token_value
@@ -74,30 +74,49 @@ def number_parser():
   ignored_whitespace = parser.skip(indent | dedent | newline)
   return parser.oneplus(number | ignored_whitespace)
 
+number_parser = get_number_parser()  
 
-def end_parser():
+
+def get_end_parser():
+  """Return parser that reads string end."""  
   endmark = parser.a(Token(token.ENDMARKER, ''))
   end = parser.skip(endmark + parser.finished)
   return end
 
+end_parser = get_end_parser()  
 
-def parse_network(s):
+
+def get_network_parser():
   """Turn a net string into numbers describing a Bayes net."""
   net_type = parser.skip(parser.a(Token(token.NAME, 'BAYES')))
-  network_parser = net_type + number_parser() + end_parser()
-  tokens = string_to_tokens(s)
-  return collections.deque(remove_ignored(network_parser.parse(tokens)))
+  return net_type + number_parser + end_parser
+  
+network_parser = get_network_parser()
 
 
-def parse_evidence(s):
-  """Turn an evidence string into numbers describing a random world."""
-  evidence_parser = number_parser() + end_parser()
-  tokens = string_to_tokens(s)
-  return collections.deque(remove_ignored(evidence_parser.parse(tokens)))
+def get_evidence_parser():
+  """Return parser for numbers describing a random world."""
+  return number_parser + end_parser
+
+evidence_parser = get_evidence_parser()  
+
+
+def get_marginal_parser():
+  """Return parser for tokens describing marginals."""
+  solution_type = parser.skip(parser.a(Token(token.NAME, 'MAR')))
+  minus = parser.a(Token(token.OP, '-'))
+  begin = parser.skip(
+    parser.maybe(minus + parser.a(Token(token.NAME, 'BEGIN')) + minus))
+  marginal_parser = (solution_type + parser.many(number_parser + begin) +
+                     end_parser)
+  return marginal_parser
+
+marginal_parser = get_marginal_parser()
 
 
 def reorder_cpt(old_order, old_domain_sizes, old_probs, new_order):
-  """
+  """Return reordered CPT based on old and new node indices.
+  
   Args:
     old_order: list of indices
     old_domain_sizes: mapping from indices to integers
@@ -162,17 +181,17 @@ def reorder_cpt(old_order, old_domain_sizes, old_probs, new_order):
   return new_probs
   
 
-def evaluate_network(rng, stack):
+def network_eval(stack, rng):
   """Turn random state and stack of (UAI) net numbers into Bayesian network."""
   
   net = bayesnet.BayesNet(rng=rng)
   
   num_vars = stack.popleft()
   
-  for i in range(num_vars):
+  for index in range(num_vars):
     domain_size = stack.popleft()
-    print "Adding node {} ({} elements in support)".format(i, domain_size)
-    node = bayesnet.BayesNetNode(index=i)
+    print "Adding node {} ({} elements in support)".format(index, domain_size)
+    node = bayesnet.BayesNetNode(index)
     node.set_domain_size(domain_size)
     net.add_node(node)
     
@@ -206,7 +225,7 @@ def evaluate_network(rng, stack):
   return net
 
 
-def evaluate_evidence(stack):
+def evidence_eval(stack):
   """Turn stack of (UAI) evidence numbers into list of random worlds."""
   samples = []
   num_samples = stack.popleft()
@@ -222,21 +241,47 @@ def evaluate_evidence(stack):
   return samples
 
 
-def network_from_string(s, rng):
-  """Parse (UAI) network string to network."""
-  stack = parse_network(s)
-  net = evaluate_network(rng, stack)
-  return net  
+def marginal_eval(stack):
+  """Turn numbers into a mapping from indices to marginal probabilities."""
+  stack = collections.deque(stack[-1])  # We are only interested in the final solution.
+  num_samples = stack.popleft()
+  assert num_samples == 1
+  num_vars = stack.popleft()
+  while len(stack) != 0:
+    probs = {}
+    for index in range(num_vars):
+      cardinality = stack.popleft()
+      state_probs = utils.pop_n(stack, cardinality)
+      probs[index] = state_probs
+  return probs
 
 
-def evidence_from_string(s):
-  """Parse (UAI) evidence string to evidence (list of random worlds)."""
-  stack = parse_evidence(s)
-  random_worlds = evaluate_evidence(stack)
-  return random_worlds
+def make_string_evaluator(token_parser, stack_evaluator):
+  """Return composition of token parser and stack evaluator."""
+  def string_evaluator(s, rng=None):
+    tokens = string_to_tokens(s.strip())
+    stack = collections.deque(remove_ignored(token_parser.parse(tokens)))
+    output = stack_evaluator(stack, rng) if rng else stack_evaluator(stack)
+    return output
+  return string_evaluator
 
 
-def load_network(filename, rng):
-  """Parse (UAI) file to network."""  
-  s = open(filename).read()
-  return network_from_string(s, rng)
+def make_file_processor(proc):
+  """Turn string processor into file processor."""
+  def file_processor(filename, *args, **kwargs):
+    s = open(filename).read()
+    return proc(s, *args, **kwargs)
+  return file_processor
+  
+
+network_from_string = make_string_evaluator(network_parser, network_eval)
+
+evidence_from_string = make_string_evaluator(evidence_parser, evidence_eval)
+
+marginals_from_string = make_string_evaluator(marginal_parser, marginal_eval)
+
+load_network = make_file_processor(network_from_string)
+
+load_evidence = make_file_processor(evidence_from_string)
+
+load_marginals = make_file_processor(marginals_from_string)

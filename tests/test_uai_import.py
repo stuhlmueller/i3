@@ -59,6 +59,19 @@ EVIDENCE_STRING = """2
 2 1 0 2 1
 1 2 0"""
 
+MARGINAL_STRING = """MAR
+1
+3 2 0.5 0.5 2 0.354608 0.645392 2 0.254609 0.745391
+-BEGIN-
+1
+3 2 0.084297 0.915703 2 0.354608 0.645392 2 0.254609 0.745391"""
+
+MARGINAL_PROBABILITIES = {
+  0 : [0.084297, 0.915703],
+  1 : [0.354608, 0.645392],
+  2 : [0.254609, 0.745391]
+}
+
 
 class TestCPTReordering(object):
 
@@ -104,7 +117,7 @@ class TestNetworkImport(object):
 class TestEvidenceImport(object):
   
   def test_string_import(self):
-    """Check that imported random worlds look like expected."""
+    """Check that imported random worlds look as expected."""
     worlds = uai_import.evidence_from_string(EVIDENCE_STRING)
     assert len(worlds[0]) == 2
     assert worlds[0][1] == 0
@@ -113,6 +126,16 @@ class TestEvidenceImport(object):
     assert worlds[1][2] == 0
 
 
+class TestMarginalImport(object):
+
+  def test_string_import(self):
+    """Check that imported marginals look as expected."""
+    marginals = uai_import.marginals_from_string(MARGINAL_STRING)
+    for (index, probs) in marginals.items():
+      np.testing.assert_array_almost_equal(
+        probs, MARGINAL_PROBABILITIES[index])
+
+    
 class TestToken(object):
 
   def test_token(self):
