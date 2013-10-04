@@ -1,4 +1,5 @@
 """Tests for Bayes net samplers."""
+import cProfile
 import pytest
 
 from i3 import exact_inference
@@ -55,3 +56,13 @@ class TestSprinkler(object):
 
   def test_gibbs(self):
     self.run_sprinkler(mcmc.GibbsChain)
+
+    
+def run_test():
+  t = TestSprinkler()
+  t.setup()
+  t.test_gibbs()
+
+
+if __name__ == "__main__":
+  cProfile.run("run_test()", sort="cumulative")
