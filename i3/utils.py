@@ -74,13 +74,30 @@ def assert_in_interval(k, p, n, confidence=.95):
 
 class RandomState(np.random.RandomState):
   """Extend numpy's RandomState with more sampling functions."""
-
+  
   def categorical_sampler(self, values, probabilities):
     """Return a categorical sampler for given values and probabilities."""
-    bins = np.add.accumulate(probabilities)
+    if not len(values) == len(probabilities):
+      raise ValueError("Values and probabilities need to be of equal length!")
+    if not values:
+      raise ValueError("Categorical sampler needs at least one value!")
+    bins = np.add.accumulate([0] + probabilities)
     def sampler():
-      index = np.digitize([self.rand()], bins)[0]
-      return values[index]
+      low = 0
+      low_cdf = bins[low]
+      high = len(bins) - 1
+      high_cdf = bins[high]
+      p = self.rand()
+      while low < high - 1:
+        mid = (low + high) // 2
+        mid_cdf = bins[mid]
+        if p < mid_cdf:
+          high = mid
+          high_cdf = mid_cdf
+        else:
+          low = mid
+          low_cdf = mid_cdf
+      return values[low]
     return sampler
 
   def random_permutation(self, obj):
