@@ -12,7 +12,8 @@ def get(rng):
 def evidence():
   filename = os.path.join(data_path, "evidence/triangle-n120-s95-1.evid")
   evidence = uai_import.load_evidence(filename)
-  return evidence
+  assert len(evidence) == 1
+  return evidence[0]
 
 def marginals():
   filename = os.path.join(data_path, "marginals/triangle-n120-s95-1.mar")

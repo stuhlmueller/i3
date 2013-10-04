@@ -100,9 +100,8 @@ class TestNetworkImport(object):
       net = uai_import.network_from_string(network_string, utils.RandomState())
       assert len(net.sample()) == 3
       for (values, prob) in NETWORK_PROBABILITIES:
-        print values, prob
         world = random_world.RandomWorld(
-          nodes=net.nodes_by_index,
+          keys=net.nodes_by_index,
           values=values)
         np.testing.assert_almost_equal(
           net.log_probability(world),

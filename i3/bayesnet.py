@@ -168,7 +168,7 @@ class BayesNet(networkx.DiGraph):
   Sampling random worlds:
   >>> world = net.sample()
   >>> world
-  {<0>: 1, <1>: 0}
+  {0: 1, 1: 0}
 
   Computing the (log) probabilities of random worlds:
   >>> net.log_probability(world)
@@ -235,7 +235,7 @@ class BayesNet(networkx.DiGraph):
     """Return the log probability of this network returning the given world."""
     assert len(world) == self.node_count
     log_prob = 0.0
-    for node in world:
+    for node in self.nodes_by_index:
       log_prob += node.log_probability(world, world[node])
     return log_prob
 

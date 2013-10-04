@@ -67,7 +67,7 @@ class TestSprinklerBayesNet(object):
   def test_nodes(self):
     """Check sampling and probability functions of nodes."""
     world = random_world.RandomWorld(
-      nodes=[self.rain_node],
+      keys=[self.rain_node],
       values=[1])
     np.testing.assert_almost_equal(
       math.exp(self.sprinkler_node.log_probability(world, 1)),
@@ -79,7 +79,7 @@ class TestSprinklerBayesNet(object):
         sprinkler_count += 1
     utils.assert_in_interval(sprinkler_count, .4, self.n, .95)
     world = random_world.RandomWorld(
-      nodes=[self.rain_node, self.sprinkler_node],
+      keys=[self.rain_node, self.sprinkler_node],
       values=[0, 1])
     np.testing.assert_almost_equal(
       math.exp(self.grass_node.log_probability(world, 1)),
@@ -97,7 +97,8 @@ class TestSprinklerBayesNet(object):
     counts = collections.defaultdict(lambda: 0)
     for _ in xrange(self.n):
       world = self.net.sample()
-      for (node, value) in world.items():
+      for node in self.net.nodes_by_index:
+        value = world[node]
         assert value in [0, 1]
         if value == 1:
           counts[node.name] += 1
