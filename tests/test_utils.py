@@ -2,6 +2,7 @@
 
 import math
 import numpy as np
+import pytest
 
 from i3 import utils
 
@@ -40,7 +41,7 @@ class TestRandomState(object):
     self.rng_1 = utils.RandomState(seed=0)
     self.rng_2 = utils.RandomState(seed=0)
     
-  def test_categorical(self):
+  def test_categorical_a(self):
     """Test categorical sampler."""
     num_samples = 100
     sampler_1 = self.rng_1.categorical_sampler(["a", "b"], [0.5, 0.5])
@@ -51,6 +52,32 @@ class TestRandomState(object):
     for value in ["a", "b"]:
       for samples in [samples_1, samples_2]:
         assert samples.count(value) > 10
+    sampler_3 = self.rng_2.categorical_sampler(["a"], [1.0])
+    samples_3 = [sampler_3() for _ in xrange(num_samples)]
+    assert samples_3 == ["a"] * num_samples
+
+  def test_categorical_b(self):    
+    with pytest.raises(ValueError):
+      sampler_4 = self.rng_2.categorical_sampler([], [1.0])
+    with pytest.raises(ValueError):
+      sampler_5 = self.rng_2.categorical_sampler(["A", "B"], [1.0])      
+    with pytest.raises(ValueError):
+      sampler_6 = self.rng_2.categorical_sampler(["A"], [0.5, 0.5])
+
+  def test_categorical_c(self):
+    num_samples = 100000
+    sampler_7 = self.rng_2.categorical_sampler(["A", "B", "C"], [0.1, 0.3, 0.6])
+    samples_7 = [sampler_7() for _ in xrange(num_samples)]
+    utils.assert_in_interval(samples_7.count("A"), 0.1, num_samples)
+    utils.assert_in_interval(samples_7.count("B"), 0.3, num_samples)
+    utils.assert_in_interval(samples_7.count("C"), 0.6, num_samples)
+
+  def test_categorical_d(self):
+    num_samples = 100000
+    sampler_8 = self.rng_2.categorical_sampler(range(10), [0.1]*10)
+    samples_8 = [sampler_8() for _ in xrange(num_samples)]
+    for i in range(10):
+      utils.assert_in_interval(samples_8.count(i), 0.1, num_samples)
     
   def test_random_permutation(self):
     """Test shuffle functionality."""
