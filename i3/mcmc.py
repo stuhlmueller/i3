@@ -1,6 +1,8 @@
 """Markov chain inference for Bayesian networks."""
+from __future__ import division
 
 from i3 import gibbs
+from i3 import marginals
 from i3 import random_world
 from i3 import utils
 
@@ -13,8 +15,33 @@ class MarkovChain(object):
   def initialize_state(self):
     raise NotImplementedError()
 
+  def marginals(self, num_transitions):
+    """Compute marginal distribution of nodes.
+    
+    Compute marginal distribution of Bayes net nodes by repeatedly
+    applying self transition kernel and storing state counts.
+
+    Args:
+      num_transitions: number of transitions to apply
+
+    Returns:
+      empirical marginals
+    """
+    counts = marginals.Marginals(
+      self.net.nodes_by_index,
+      [[0] * len(node.support) for node in self.net.nodes_by_index]
+    )
+    for i in xrange(num_transitions):
+      self.transition()
+      for (index, value) in self.state.items():
+        counts[index][value] += 1
+    for node in self.net.nodes_by_index:
+      for value in node.support:
+        counts[node][value] /= num_transitions
+    return counts
+
   def transition(self):
-    raise NotImplementedError()
+    raise NotImplementedError()    
 
 
 class RejectionChain(MarkovChain):
