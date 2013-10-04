@@ -21,7 +21,7 @@ class TestTriangleNetwork(object):
   def test_gibbs(self):
     chain = mcmc.GibbsChain(self.net, self.rng, self.evidence)
     chain.initialize_state()
-    empirical_marginals = chain.marginals(5000)
+    empirical_marginals = chain.marginals(10000)
     diff = self.marginals - empirical_marginals
     average_error = sum(diff.values())/len(diff)
     print average_error

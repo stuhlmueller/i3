@@ -4,10 +4,10 @@ import pprint
 
 
 def as_index(node_or_index):
-  if isinstance(node_or_index, (int, long)):
-    return node_or_index
-  else:
+  if hasattr(node_or_index, "index"):
     return node_or_index.index
+  else:
+    return node_or_index
 
 
 class RandomWorld(object):
@@ -60,7 +60,7 @@ class RandomWorld(object):
     copy_world = self.copy()
     copy_world[as_index(key)] = value
     return copy_world
-
+  
   def items(self):
     """Return a list of key-value pairs."""
     return self.data.items()
