@@ -56,7 +56,9 @@ class TestRandomState(object):
     samples_3 = [sampler_3() for _ in xrange(num_samples)]
     assert samples_3 == ["a"] * num_samples
 
-  def test_categorical_b(self):    
+  def test_categorical_b(self):
+    with pytest.raises(ValueError):
+      sampler_4 = self.rng_2.categorical_sampler([], [])    
     with pytest.raises(ValueError):
       sampler_4 = self.rng_2.categorical_sampler([], [1.0])
     with pytest.raises(ValueError):

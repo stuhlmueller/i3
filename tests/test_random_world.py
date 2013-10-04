@@ -25,6 +25,8 @@ def test_random_world():
   nodes = [A, B, C]
   values = [True, False, 3]
   world = random_world.RandomWorld(nodes, values)
+  assert set(world.keys()) == set([0, 1, 2])
+  assert set(world.values()) == set([True, False, 3])    
   assert world
   assert len(world) == 3
   for node, value in zip(nodes, values):
