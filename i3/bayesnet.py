@@ -275,6 +275,7 @@ class BayesNetCollection(object):
     if self.node_count == -1:
       assert not self.nets_by_key
       self.node_count = net.node_count
+      self.supports = [node.support for node in net.nodes_by_index]
     else:
       assert net.node_count == self.node_count
       for node, support in zip(net.nodes_by_index, self.supports):

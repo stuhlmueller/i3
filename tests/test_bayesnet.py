@@ -137,3 +137,9 @@ class TestBayesNetCollection(object):
       nets.get_net("c")
     with pytest.raises(AssertionError):
       nets.add_net("c", sprinkler_net.get(self.rng))
+    nets.add_net("c", self.net_1)
+    nets.add_net("d", self.net_2)
+    assert nets.get_net("a") == self.net_1
+    assert nets.get_net("b") == self.net_2    
+    assert nets.get_net("c") == self.net_1
+    assert nets.get_net("d") == self.net_2
