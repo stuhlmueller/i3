@@ -14,7 +14,7 @@ from i3.networks import sprinkler_net
 
 class TestBinaryBayesNet(object):
   """Test a two-node Bayes net."""
-
+  
   def setup(self):
     """Set up random stream and network."""
     self.rng = utils.RandomState(seed=0)
@@ -110,3 +110,30 @@ class TestSprinklerBayesNet(object):
     """Check that finding nodes by name works."""
     with pytest.raises(ValueError):
       node = self.net.find_node("Foo")
+
+
+class TestBayesNetCollection(object):
+  """Test BayesNetCollection using binary nets."""
+
+  def setup(self):
+    self.rng = utils.RandomState(seed=0)
+    self.net_1 = binary_net.get_v1(self.rng)
+    self.net_2 = binary_net.get_v2(self.rng)
+
+  def test_binary(self):
+    nets = bayesnet.BayesNetCollection()
+    with pytest.raises(KeyError):
+      nets.get_net("a")    
+    nets.add_net("a", self.net_1)
+    assert nets.get_net("a") == self.net_1
+    with pytest.raises(KeyError):
+      nets.get_net("b")
+    with pytest.raises(AssertionError):
+      nets.add_net("a", self.net_2)      
+    nets.add_net("b", self.net_2)
+    assert nets.get_net("a") == self.net_1
+    assert nets.get_net("b") == self.net_2
+    with pytest.raises(KeyError):
+      nets.get_net("c")
+    with pytest.raises(AssertionError):
+      nets.add_net("c", sprinkler_net.get(self.rng))

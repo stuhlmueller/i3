@@ -4,7 +4,6 @@ from __future__ import division
 import cProfile
 import numpy as np
 
-from i3 import marginals
 from i3 import mcmc
 from i3 import utils
 from i3.networks import triangle_net
@@ -15,8 +14,8 @@ class TestTriangleNetwork(object):
   def setup(self):
     self.rng = utils.RandomState(seed=0)
     self.net = triangle_net.get(self.rng)
-    self.evidence = triangle_net.evidence()
-    self.marginals = triangle_net.marginals()
+    self.evidence = triangle_net.evidence(0)
+    self.marginals = triangle_net.marginals(0)
 
   def test_gibbs(self):
     chain = mcmc.GibbsChain(self.net, self.rng, self.evidence)

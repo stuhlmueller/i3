@@ -255,3 +255,33 @@ class BayesNet(networkx.DiGraph):
       if node.name == name:
         return node
     raise ValueError("Node with name {} not found!", name)
+
+
+class BayesNetCollection(object):
+  """A dict-like collection of factorizations of the same network.
+
+  For each BayesNet added to the collection, check that it has nodes
+  with the same support as previous networks.
+  """
+
+  def __init__(self):
+    self.nets_by_key = {}
+    self.node_count = -1
+    self.supports = []
+
+  def add_net(self, key, net):
+    """Add network to collection (with appropriate checks)."""
+    assert not key in self.nets_by_key
+    if self.node_count == -1:
+      assert not self.nets_by_key
+      self.node_count = net.node_count
+    else:
+      assert net.node_count == self.node_count
+      for node, support in zip(net.nodes_by_index, self.supports):
+        assert node.support == support
+    self.nets_by_key[key] = net
+
+  def get_net(self, key):
+    """Look up network given key."""
+    return self.nets_by_key[key]
+    

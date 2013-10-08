@@ -9,13 +9,15 @@ def get(rng):
   net = uai_import.load_network(filename, rng)
   return net
 
-def evidence():
+def evidence(index):
+  assert index == 0
   filename = os.path.join(data_path, "evidence/triangle-n120-s95-1.evid")
   evidence = uai_import.load_evidence(filename)
   assert len(evidence) == 1
   return evidence[0]
 
-def marginals():
+def marginals(index):
+  assert index == 0
   filename = os.path.join(data_path, "marginals/triangle-n120-s95-1.mar")
   marginals = uai_import.load_marginals(filename)
   return marginals

@@ -2,7 +2,7 @@
 from __future__ import division
 
 from i3 import gibbs
-from i3 import marginals
+from i3 import marg
 from i3 import random_world
 from i3 import utils
 
@@ -27,7 +27,7 @@ class MarkovChain(object):
     Returns:
       empirical marginals
     """
-    counts = marginals.Marginals(
+    counts = marg.Marginals(
       self.net.nodes_by_index,
       [[0] * len(node.support) for node in self.net.nodes_by_index]
     )

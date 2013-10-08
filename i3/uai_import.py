@@ -7,8 +7,8 @@ import tokenize
 from funcparserlib import parser
 
 from i3 import bayesnet
-from i3 import evidence
-from i3 import marginals
+from i3 import evid
+from i3 import marg
 from i3 import random_world
 from i3 import utils
 
@@ -231,12 +231,12 @@ def evidence_eval(stack):
   num_samples = stack.popleft()
   for i in range(num_samples):
     num_variables = stack.popleft()
-    evid = evidence.Evidence()
+    evidence = evid.Evidence()
     for j in range(num_variables):
       index = stack.popleft()
       value = stack.popleft()
-      evid[index] = value
-    samples.append(evid)
+      evidence[index] = value
+    samples.append(evidence)
   assert not stack
   return samples
 
@@ -248,12 +248,12 @@ def marginal_eval(stack):
   assert num_samples == 1
   num_vars = stack.popleft()
   while len(stack) != 0:
-    marg = marginals.Marginals()
+    marginals = marg.Marginals()
     for index in range(num_vars):
       cardinality = stack.popleft()
       state_probs = utils.pop_n(stack, cardinality)
-      marg[index] = state_probs
-  return marg
+      marginals[index] = state_probs
+  return marginals
 
 
 def make_string_evaluator(token_parser, stack_evaluator):

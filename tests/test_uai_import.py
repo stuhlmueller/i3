@@ -111,8 +111,8 @@ class TestNetworkImport(object):
     """Check that importing big files doesn't throw errors."""
     rng = utils.RandomState(seed=0)
     net = triangle_net.get(rng)
-    evidence = triangle_net.evidence()
-    marginals = triangle_net.marginals()
+    evidence = triangle_net.evidence(0)
+    marginals = triangle_net.marginals(0)
 
 
 class TestEvidenceImport(object):
