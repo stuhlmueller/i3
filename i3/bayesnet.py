@@ -257,7 +257,7 @@ class BayesNet(networkx.DiGraph):
     raise ValueError("Node with name {} not found!", name)
 
 
-class BayesNetCollection(object):
+class BayesNetMap(object):
   """A dict-like collection of factorizations of the same network.
 
   For each BayesNet added to the collection, check that it has nodes
@@ -268,6 +268,9 @@ class BayesNetCollection(object):
     self.nets_by_key = {}
     self.node_count = -1
     self.supports = []
+
+  def __len__(self):
+    return len(self.nets_by_key)
 
   def add_net(self, key, net):
     """Add network to collection (with appropriate checks)."""
@@ -285,4 +288,8 @@ class BayesNetCollection(object):
   def get_net(self, key):
     """Look up network given key."""
     return self.nets_by_key[key]
+
+  def items(self):
+    """Return list of (key, BayesNet) pairs."""
+    return self.nets_by_key.items()
     

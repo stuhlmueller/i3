@@ -112,8 +112,8 @@ class TestSprinklerBayesNet(object):
       node = self.net.find_node("Foo")
 
 
-class TestBayesNetCollection(object):
-  """Test BayesNetCollection using binary nets."""
+class TestBayesNetMap(object):
+  """Test BayesNetMap using binary nets."""
 
   def setup(self):
     self.rng = utils.RandomState(seed=0)
@@ -121,7 +121,7 @@ class TestBayesNetCollection(object):
     self.net_2 = binary_net.get_v2(self.rng)
 
   def test_binary(self):
-    nets = bayesnet.BayesNetCollection()
+    nets = bayesnet.BayesNetMap()
     with pytest.raises(KeyError):
       nets.get_net("a")    
     nets.add_net("a", self.net_1)
