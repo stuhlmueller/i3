@@ -12,6 +12,15 @@ from i3.networks import binary_net
 from i3.networks import sprinkler_net
 
 
+def test_abstract_bayesnet_node():
+  node = bayesnet.BayesNetNode(index=0, name="Foo")
+  world = random_world.RandomWorld()
+  with pytest.raises(NotImplementedError):
+    node.sample(world)
+  with pytest.raises(NotImplementedError):
+    node.log_probability(world, 1)
+
+
 class TestBinaryBayesNet(object):
   """Test a two-node Bayes net."""
   
@@ -121,25 +130,27 @@ class TestBayesNetMap(object):
     self.net_2 = binary_net.get_v2(self.rng)
 
   def test_binary(self):
-    nets = bayesnet.BayesNetMap()
+    m = bayesnet.BayesNetMap()
     with pytest.raises(KeyError):
-      nets.get_net("a")    
-    nets.add_net("a", self.net_1)
-    assert nets.get_net("a") == self.net_1
+      m.get_net("a")    
+    m.add_net("a", self.net_1)
+    assert m.get_net("a") == self.net_1
     with pytest.raises(KeyError):
-      nets.get_net("b")
+      m.get_net("b")
     with pytest.raises(AssertionError):
-      nets.add_net("a", self.net_2)      
-    nets.add_net("b", self.net_2)
-    assert nets.get_net("a") == self.net_1
-    assert nets.get_net("b") == self.net_2
+      m.add_net("a", self.net_2)      
+    m.add_net("b", self.net_2)
+    assert m.get_net("a") == self.net_1
+    assert m.get_net("b") == self.net_2
     with pytest.raises(KeyError):
-      nets.get_net("c")
+      m.get_net("c")
     with pytest.raises(AssertionError):
-      nets.add_net("c", sprinkler_net.get(self.rng))
-    nets.add_net("c", self.net_1)
-    nets.add_net("d", self.net_2)
-    assert nets.get_net("a") == self.net_1
-    assert nets.get_net("b") == self.net_2    
-    assert nets.get_net("c") == self.net_1
-    assert nets.get_net("d") == self.net_2
+      m.add_net("c", sprinkler_net.get(self.rng))
+    m.add_net("c", self.net_1)
+    m.add_net("d", self.net_2)
+    assert m.get_net("a") == self.net_1
+    assert m.get_net("b") == self.net_2    
+    assert m.get_net("c") == self.net_1
+    assert m.get_net("d") == self.net_2
+    assert len(m.items()) == 4
+    assert sorted(m.items())[0] == ("a", self.net_1)
