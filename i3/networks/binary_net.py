@@ -9,11 +9,11 @@ def get(rng):
 
 
 def get_v1(rng):
-  node_1 = bayesnet.BayesNetNode(
+  node_1 = bayesnet.TableBayesNetNode(
     index=0,
     domain_size=2,
     cpt_probabilities=[0.0, 1.0])
-  node_2 = bayesnet.BayesNetNode(
+  node_2 = bayesnet.TableBayesNetNode(
     index=1,
     domain_size=3,
     cpt_probabilities=[
@@ -28,11 +28,11 @@ def get_v1(rng):
 
 
 def get_v2(rng):
-  node_2 = bayesnet.BayesNetNode(
+  node_2 = bayesnet.TableBayesNetNode(
     index=1,
     domain_size=3,
     cpt_probabilities=[0.0, 0.0, 1.0])
-  node_1 = bayesnet.BayesNetNode(
+  node_1 = bayesnet.TableBayesNetNode(
     index=0,
     domain_size=2,
     cpt_probabilities=[

@@ -192,7 +192,7 @@ def network_eval(stack, rng):
   
   for index in range(num_vars):
     domain_size = stack.popleft()
-    node = bayesnet.BayesNetNode(index)
+    node = bayesnet.TableBayesNetNode(index)
     node.set_domain_size(domain_size)
     net.add_node(node)
     

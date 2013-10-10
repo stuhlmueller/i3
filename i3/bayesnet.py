@@ -10,39 +10,19 @@ from i3 import random_world
 
 
 class BayesNetNode(object):
-  """Categorical Bayes net node."""
+  """General Bayes net node."""  
 
-  def __init__(self, index, domain_size=None, cpt_probabilities=None,
-               name=None):
+  def __init__(self, index, name=None):
     """Initializes Bayes net node.
 
     Args:
       index: Bayesnet-unique identifier (integer)
-      domain_size: number of elements in support
-      cpt_probabilities: a list of ordered cpt probabilities:
-        - node ordering: parent nodes sorted by index (low to high), then self.
-            e.g. [parent_5, parent_7, parent_10, node_8]
-        - probability ordering: lexicographic based on node ordering.
-            e.g. p(node_8=0 | parent_5=0, parent_7=0, parent_10=0)
-                 p(node_8=1 | parent_5=0, parent_7=0, parent_10=0),
-                 ...
-                 p(node_8=1 | parent_5=1, parent_7=1, parent_10=1)
       name: a string (optional)
     """
     self.index = index
     self.net = None
-    self.domain_size = None
     self.markov_blanket = None
-    self.support = None
     self.name = name
-    self._cpt_probabilities = None    
-    self._distributions = None
-    self._parent_multiplier = None    
-    self._compiled = False
-    if domain_size:
-      self.set_domain_size(domain_size)
-    if cpt_probabilities:
-      self.set_cpt_probabilities(cpt_probabilities)
   
   def __str__(self):
     return "<{}>".format(self.name or self.index)
@@ -65,6 +45,74 @@ class BayesNetNode(object):
       set(node for node in overcomplete_blanket if node != self),
       key=lambda node: node.index)
     return markov_blanket
+
+  def set_net(self, net):
+    """Set Bayes net associated with this node."""
+    assert not self.net
+    self.net = net    
+  
+  def sample(self, world):
+    """Sample node value given parent values in world."""
+    raise NotImplementedError
+
+  def log_probability(self, world, node_value):
+    """Return log probability of node value given parent values in world."""
+    raise NotImplementedError    
+    
+  @property
+  def parents(self):
+    return sorted(self.net.predecessors(self))
+
+  @property
+  def children(self):
+    return sorted(self.net.successors(self))
+
+  
+class DiscreteBayesNetNode(BayesNetNode):
+  """Bayes net node with discrete support."""
+  
+  def __init__(self, index, name=None, domain_size=None):
+    super(DiscreteBayesNetNode, self).__init__(index, name=name)
+    self.support = None
+    if domain_size:
+      self.set_domain_size(domain_size)    
+
+  def set_domain_size(self, domain_size):
+    """Set the number of elements in the support of this node."""
+    self.domain_size = domain_size
+    self.support = range(domain_size)
+
+
+class TableBayesNetNode(DiscreteBayesNetNode):
+  """Bayes net node initialized using CPT."""
+
+  def __init__(self, index, domain_size=None, cpt_probabilities=None,
+               name=None):
+    """Initializes categorical Bayes net node.
+
+    Args:
+      index: Bayesnet-unique identifier (integer)
+      domain_size: number of elements in support
+      cpt_probabilities: a list of ordered cpt probabilities:
+        - node ordering: parent nodes sorted by index (low to high), then self.
+            e.g. [parent_5, parent_7, parent_10, node_8]
+        - probability ordering: lexicographic based on node ordering.
+            e.g. p(node_8=0 | parent_5=0, parent_7=0, parent_10=0)
+                 p(node_8=1 | parent_5=0, parent_7=0, parent_10=0),
+                 ...
+                 p(node_8=1 | parent_5=1, parent_7=1, parent_10=1)
+      name: a string (optional)
+    """
+    super(TableBayesNetNode, self).__init__(
+      index, name=name, domain_size=domain_size)
+    self._cpt_probabilities = None    
+    self._distributions = None
+    self._parent_multiplier = None    
+    self._compiled = False
+    if domain_size:
+      self.set_domain_size(domain_size)
+    if cpt_probabilities:
+      self.set_cpt_probabilities(cpt_probabilities)
 
   def _compute_distributions(self):
     """Compute the distribution for each setting of parent values."""
@@ -105,22 +153,12 @@ class BayesNetNode(object):
     """Given parent values in world, return appropriate distribution object."""
     return self._distributions[self._distribution_index(world)]
 
-  def set_domain_size(self, domain_size):
-    """Set the number of elements in the support of this node."""
-    self.domain_size = domain_size
-
   def set_cpt_probabilities(self, cpt_probabilities):
     """Set the conditional probability table (CPT)."""
     self._cpt_probabilities = cpt_probabilities
-
-  def set_net(self, net):
-    """Set Bayes net associated with this node."""
-    assert not self.net
-    self.net = net    
     
   def compile(self):
     """Compute and store distributions and Markov blanket."""
-    self.support = range(self.domain_size)    
     self.markov_blanket = self._compute_markov_blanket()
     self._parent_multiplier = self._compute_parent_multipliers()
     self._distributions = self._compute_distributions()
@@ -137,14 +175,6 @@ class BayesNetNode(object):
     return self._get_distribution(world).log_probability(node_value)
 
   @property
-  def parents(self):
-    return sorted(self.net.predecessors(self))
-
-  @property
-  def children(self):
-    return sorted(self.net.successors(self))
-
-  @property
   def cpt_probabilities(self):
     return self._cpt_probabilities
 
@@ -156,10 +186,14 @@ class BayesNet(networkx.DiGraph):
   >>> from i3 import utils
   >>> from i3 import bayesnet
   >>> rng = utils.RandomState(seed=0)
-  >>> node_1 = bayesnet.BayesNetNode(index=0, domain_size=2,
+  >>> node_1 = bayesnet.TableBayesNetNode(index=0, domain_size=2,
   ...   cpt_probabilities=[0.001, 0.999])
-  >>> node_2 = bayesnet.BayesNetNode(index=1, domain_size=3, 
-  ...   cpt_probabilities=[0.002, 0.008, 0.980, 0.980, 0.002, 0.008])  
+  >>> node_2 = bayesnet.TableBayesNetNode(index=1, domain_size=3, 
+  ...   cpt_probabilities=[0.002, 0.008, 0.980, 0.980, 0.002, 0.008])
+  >>> print '%.3f' % node_2.cpt_probabilities[0]
+  0.002
+  >>> print '%.3f' % node_2.cpt_probabilities[-1]
+  0.008
   >>> net = bayesnet.BayesNet(rng,
   ...  nodes=[node_1, node_2],
   ...  edges=[(node_1, node_2)])
@@ -204,8 +238,8 @@ class BayesNet(networkx.DiGraph):
       return "<<BN>>"
     s = "<<BN\n"
     for node in self.nodes_by_topology or self.nodes_by_index:
-      s += "  {} -> {}  {} {}\n".format(
-        node.parents, node, node.domain_size, node.cpt_probabilities)
+      s += "  {} -> {}  {}\n".format(
+        node.parents, node, node.domain_size)
     s += ">>"
     return s
       
@@ -241,6 +275,7 @@ class BayesNet(networkx.DiGraph):
 
   def add_node(self, node, attr_dict=None, **attr):
     """Add node to network."""
+    assert node not in self.nodes_by_index
     super(BayesNet, self).add_node(node, attr_dict=attr_dict, **attr)
     if self.nodes_by_index:
       assert node.index == self.nodes_by_index[-1].index + 1
