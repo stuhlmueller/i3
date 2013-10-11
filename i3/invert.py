@@ -90,7 +90,8 @@ def compute_inverse_net(net, start_nodes, end_node, rng):
 
   # Create inverse net.
   inverse_nodes = [
-    bayesnet.DiscreteBayesNetNode(node.index, node.name, node.domain_size)
+    bayesnet.DistBayesNetNode(
+      node.index, name=node.name, domain_size=node.domain_size)
     for node in net.nodes_by_index]
   inverse_net = bayesnet.BayesNet(rng, nodes=inverse_nodes)
   
