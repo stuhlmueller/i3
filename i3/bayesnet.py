@@ -10,7 +10,7 @@ from i3 import random_world
 
 
 class BayesNetNode(object):
-  """General Bayes net node."""  
+  """General Bayes net node."""
 
   def __init__(self, index, name=None):
     """Initializes Bayes net node.
@@ -23,7 +23,8 @@ class BayesNetNode(object):
     self.net = None
     self.markov_blanket = None
     self.name = name
-  
+    self._compiled = False
+
   def __str__(self):
     return "<{}>".format(self.name or self.index)
 
@@ -46,19 +47,24 @@ class BayesNetNode(object):
       key=lambda node: node.index)
     return markov_blanket
 
+  def compile(self):
+    """Compute and store Markov blanket."""
+    self.markov_blanket = self._compute_markov_blanket()
+    self._compiled = True
+
   def set_net(self, net):
     """Set Bayes net associated with this node."""
     assert not self.net
-    self.net = net    
-  
+    self.net = net
+
   def sample(self, world):
     """Sample node value given parent values in world."""
     raise NotImplementedError
 
   def log_probability(self, world, node_value):
     """Return log probability of node value given parent values in world."""
-    raise NotImplementedError    
-    
+    raise NotImplementedError
+
   @property
   def parents(self):
     return sorted(self.net.predecessors(self))
@@ -67,20 +73,46 @@ class BayesNetNode(object):
   def children(self):
     return sorted(self.net.successors(self))
 
-  
+
 class DiscreteBayesNetNode(BayesNetNode):
   """Bayes net node with discrete support."""
-  
+
   def __init__(self, index, name=None, domain_size=None):
     super(DiscreteBayesNetNode, self).__init__(index, name=name)
     self.support = None
     if domain_size:
-      self.set_domain_size(domain_size)    
+      self.set_domain_size(domain_size)
 
   def set_domain_size(self, domain_size):
     """Set the number of elements in the support of this node."""
     self.domain_size = domain_size
     self.support = range(domain_size)
+
+
+class DistBayesNetNode(DiscreteBayesNetNode):
+  """Bayes net node initialized using distribution."""
+
+  def __init__(self, index, name=None, domain_size=None, distribution=None):
+    super(DistBayesNetNode, self).__init__(
+      index, name=name, domain_size=domain_size)
+    self.distribution = None
+    if distribution:
+      self.set_distribution(distribution)
+
+  def compile(self):
+    assert self.distribution
+    super(DistBayesNetNode, self).compile()
+
+  def set_distribution(self, distribution):
+    self.distribution = distribution
+
+  def sample(self, world):
+    parent_values = [world[parent] for parent in self.parents]
+    return self.distribution.sample(parent_values)
+
+  def log_probability(self, world, node_value):
+    parent_values = [world[parent] for parent in self.parents]
+    return self.distribution.log_probability(parent_values, node_value)
 
 
 class TableBayesNetNode(DiscreteBayesNetNode):
@@ -105,10 +137,9 @@ class TableBayesNetNode(DiscreteBayesNetNode):
     """
     super(TableBayesNetNode, self).__init__(
       index, name=name, domain_size=domain_size)
-    self._cpt_probabilities = None    
+    self._cpt_probabilities = None
     self._distributions = None
-    self._parent_multiplier = None    
-    self._compiled = False
+    self._parent_multiplier = None
     if domain_size:
       self.set_domain_size(domain_size)
     if cpt_probabilities:
@@ -148,7 +179,7 @@ class TableBayesNetNode(DiscreteBayesNetNode):
     """Given parent values, return index that points to correct distribution."""
     return sum(world[parent]*self._parent_multiplier[i]
                for (i, parent) in enumerate(self.parents))
-    
+
   def _get_distribution(self, world):
     """Given parent values in world, return appropriate distribution object."""
     return self._distributions[self._distribution_index(world)]
@@ -156,14 +187,14 @@ class TableBayesNetNode(DiscreteBayesNetNode):
   def set_cpt_probabilities(self, cpt_probabilities):
     """Set the conditional probability table (CPT)."""
     self._cpt_probabilities = cpt_probabilities
-    
+
   def compile(self):
     """Compute and store distributions and Markov blanket."""
     self.markov_blanket = self._compute_markov_blanket()
     self._parent_multiplier = self._compute_parent_multipliers()
     self._distributions = self._compute_distributions()
     self._compiled = True
-    
+
   def sample(self, world):
     """Sample node value given parent values in world."""
     assert self._compiled
@@ -173,10 +204,6 @@ class TableBayesNetNode(DiscreteBayesNetNode):
     """Return log probability of node value given parent values in world."""
     assert self._compiled
     return self._get_distribution(world).log_probability(node_value)
-
-  @property
-  def cpt_probabilities(self):
-    return self._cpt_probabilities
 
 
 class BayesNet(networkx.DiGraph):
@@ -188,12 +215,8 @@ class BayesNet(networkx.DiGraph):
   >>> rng = utils.RandomState(seed=0)
   >>> node_1 = bayesnet.TableBayesNetNode(index=0, domain_size=2,
   ...   cpt_probabilities=[0.001, 0.999])
-  >>> node_2 = bayesnet.TableBayesNetNode(index=1, domain_size=3, 
+  >>> node_2 = bayesnet.TableBayesNetNode(index=1, domain_size=3,
   ...   cpt_probabilities=[0.002, 0.008, 0.980, 0.980, 0.002, 0.008])
-  >>> print '%.3f' % node_2.cpt_probabilities[0]
-  0.002
-  >>> print '%.3f' % node_2.cpt_probabilities[-1]
-  0.008
   >>> net = bayesnet.BayesNet(rng,
   ...  nodes=[node_1, node_2],
   ...  edges=[(node_1, node_2)])
@@ -228,7 +251,7 @@ class BayesNet(networkx.DiGraph):
       for node in nodes:
         self.add_node(node)
     if edges:
-      self.add_edges_from(edges)    
+      self.add_edges_from(edges)
 
   def __repr__(self):
     return str(self)
@@ -242,7 +265,7 @@ class BayesNet(networkx.DiGraph):
         node.parents, node, node.domain_size)
     s += ">>"
     return s
-      
+
   def compile(self):
     """Compute topological order, Markov blanket, etc."""
     self.nodes_by_topology = tuple(networkx.topological_sort(self))
@@ -324,7 +347,13 @@ class BayesNetMap(object):
     """Look up network given key."""
     return self.nets_by_key[key]
 
+  def keys(self):
+    return self.nets_by_key.keys()
+
+  def values(self):
+    return self.nets_by_key.values()
+
   def items(self):
     """Return list of (key, BayesNet) pairs."""
     return self.nets_by_key.items()
-    
+
