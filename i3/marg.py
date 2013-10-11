@@ -14,5 +14,5 @@ class Marginals(random_world.RandomWorld):
       diff[i] = 0
       for j, p in enumerate(ps):
         q = other[i][j]
-        diff[i] += abs(p-q)/len(ps)
+        diff[i] += abs(p - q) / len(ps)
     return diff

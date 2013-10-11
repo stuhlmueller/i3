@@ -1,7 +1,6 @@
 from __future__ import division
 
 import collections
-import copy
 import networkx as nx
 import numpy as np
 
@@ -16,7 +15,7 @@ def dependent_nodes(node, observed_nodes):
     next_node = queue.popleft()
     if next_node not in dependencies:
       dependencies.add(next_node)
-      assert next_node.markov_blanket != None
+      assert next_node.markov_blanket is not None
       queue.extend(next_node.markov_blanket)
   return dependencies & observed_nodes
 
@@ -36,29 +35,29 @@ def distance_scorer(net, start_nodes):
     scorer: a function that maps pairs of (node, end_node) to real numbers.
   """
   undirected_net = nx.Graph(net)
-  
+
   # All-pairs shortest-path
   path_length = nx.shortest_path_length(undirected_net)
-  
+
   # For each latent node, compute average of min distances to start nodes.
   start_distance = {}
   for node in net.nodes_by_index:
     distances = [path_length[start_node][node] for start_node in start_nodes]
     start_distance[node] = np.mean(distances)
-  
+
   max_start_distance = max(start_distance.values())
-    
+
   def scorer(node, end_node):
     """Return score for node given (fixed) start_nodes and end_nodes"""
     if node == end_node:
       score = float("-inf")
     elif node in start_nodes:
       score = float("inf")
-    else:    
+    else:
       score = ((max_start_distance - start_distance[node]) +
                path_length[node][end_node])
     return score
-  
+
   return scorer
 
 
@@ -77,7 +76,7 @@ def compute_inverse_net(net, start_nodes, end_node, rng):
   for node in start_nodes + [end_node]:
     assert node in net.nodes_by_index
     assert node.support
-  
+
   # Compute distance-based scorer for Bayes net nodes.
   scorer = distance_scorer(net, start_nodes)
 
@@ -94,7 +93,7 @@ def compute_inverse_net(net, start_nodes, end_node, rng):
       node.index, name=node.name, domain_size=node.domain_size)
     for node in net.nodes_by_index]
   inverse_net = bayesnet.BayesNet(rng, nodes=inverse_nodes)
-  
+
   # Add edges (based on dependencies in fwd net).
   observed_nodes = set(start_nodes)
   for index in sorted_indices:
@@ -105,7 +104,7 @@ def compute_inverse_net(net, start_nodes, end_node, rng):
         inverse_net.add_edge(
           inverse_nodes[forward_dep.index], inverse_nodes[index])
       observed_nodes.add(forward_node)
-  
+
   return inverse_net
 
 

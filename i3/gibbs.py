@@ -2,7 +2,7 @@
 
 import math
 
-from i3 import distribution
+from i3 import dist
 from i3 import random_world
 
 
@@ -27,7 +27,7 @@ def gibbs_probabilities(node, world):
     coparents, [world[coparent] for coparent in coparents])
 
   gibbs_probs = []
-  
+
   for value in node.support:
     node_logprob = node.log_probability(world, value)
     coparent_world[node] = value
@@ -35,7 +35,7 @@ def gibbs_probabilities(node, world):
       child.log_probability(coparent_world, world[child])
       for child in node.children)
     gibbs_probs.append(math.exp(node_logprob + children_logprob))
-  
+
   return gibbs_probs
 
 
@@ -51,7 +51,7 @@ def gibbs_distribution(node, world, rng):
     a categorical distribution on the support of node
   """
   gibbs_probs = gibbs_probabilities(node, world)
-  gibbs_dist = distribution.CategoricalDistribution(
+  gibbs_dist = dist.CategoricalDistribution(
     node.support, gibbs_probs, rng)
   return gibbs_dist
 

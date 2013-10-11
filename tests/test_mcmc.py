@@ -11,7 +11,7 @@ from i3.networks import sprinkler_net
 
 class TestMarkovChain(object):
   """Elementary Markov chain tests."""
-  
+
   def setup(self):
     self.rng = utils.RandomState(seed=0)
     self.net = sprinkler_net.get(self.rng)
@@ -57,7 +57,7 @@ class TestSprinkler(object):
   def test_gibbs(self):
     self.run_sprinkler(mcmc.GibbsChain)
 
-    
+
 def run_test():
   t = TestSprinkler()
   t.setup()

@@ -1,7 +1,6 @@
 import StringIO
 import collections
 import operator
-import pprint
 import token
 import tokenize
 from funcparserlib import parser
@@ -9,13 +8,12 @@ from funcparserlib import parser
 from i3 import bayesnet
 from i3 import evid
 from i3 import marg
-from i3 import random_world
 from i3 import utils
 
 
 class Token(object):
   """A multi-character element in a string, with position and type."""
-  
+
   def __init__(self, code, value, start=(0, 0), stop=(0, 0), line=''):
     self.code = code
     self.value = value
@@ -76,23 +74,26 @@ def get_number_parser():
   ignored_whitespace = parser.skip(indent | dedent | newline)
   return parser.oneplus(number | ignored_whitespace)
 
-number_parser = get_number_parser()  
+
+number_parser = get_number_parser()
 
 
 def get_end_parser():
-  """Return parser that reads string end."""  
+  """Return parser that reads string end."""
   endmark = parser.a(Token(token.ENDMARKER, ''))
   end = parser.skip(endmark + parser.finished)
   return end
 
-end_parser = get_end_parser()  
+
+end_parser = get_end_parser()
 
 
 def get_network_parser():
   """Turn a net string into numbers describing a Bayes net."""
   net_type = parser.skip(parser.a(Token(token.NAME, 'BAYES')))
   return net_type + number_parser + end_parser
-  
+
+
 network_parser = get_network_parser()
 
 
@@ -100,7 +101,8 @@ def get_evidence_parser():
   """Return parser for numbers describing a random world."""
   return number_parser + end_parser
 
-evidence_parser = get_evidence_parser()  
+
+evidence_parser = get_evidence_parser()
 
 
 def get_marginal_parser():
@@ -112,6 +114,7 @@ def get_marginal_parser():
   marginal_parser = (solution_type + parser.many(number_parser + begin) +
                      end_parser)
   return marginal_parser
+
 
 marginal_parser = get_marginal_parser()
 
@@ -150,11 +153,11 @@ def reorder_cpt(old_order, old_domain_sizes, old_probs, new_order):
     c=1, a=0, b=1: .4
     c=1, a=1, b=0: .6
     c=1, a=1, b=1: .8
-  """  
+  """
   assert len(old_order) == len(old_domain_sizes)
   assert set(old_order) == set(new_order)
   assert len(old_probs) == reduce(operator.mul, old_domain_sizes, 1)
-  
+
   # Create a mapping from old-order value tuples to probabilities.
   old_domains = [range(domain_size) for domain_size in old_domain_sizes]
   old_value_lists = utils.lexicographic_combinations(old_domains)
@@ -181,21 +184,21 @@ def reorder_cpt(old_order, old_domain_sizes, old_probs, new_order):
     new_probs.append(prob)
 
   return new_probs
-  
+
 
 def network_eval(stack, rng):
   """Turn random state and stack of (UAI) net numbers into Bayesian network."""
-  
+
   net = bayesnet.BayesNet(rng=rng)
-  
+
   num_vars = stack.popleft()
-  
+
   for index in range(num_vars):
     domain_size = stack.popleft()
     node = bayesnet.TableBayesNetNode(index)
     node.set_domain_size(domain_size)
     net.add_node(node)
-    
+
   num_cliques = stack.popleft()
   assert num_cliques == num_vars
 
@@ -206,7 +209,7 @@ def network_eval(stack, rng):
     for index in clique_order[node]:
       if index != node.index:
         net.add_edge(net.nodes_by_index[index], node)
-  
+
   for node in net.nodes_by_index:
     cpt_size = stack.popleft()
     cpt_probabilities = utils.pop_n(stack, cpt_size)
@@ -219,7 +222,7 @@ def network_eval(stack, rng):
     new_cpt_probabilities = reorder_cpt(
       clique_order[node], old_domain_sizes, cpt_probabilities, new_clique_order)
     node.set_cpt_probabilities(new_cpt_probabilities)
-  
+
   assert not stack
   net.compile()
   return net
@@ -258,21 +261,25 @@ def marginal_eval(stack):
 
 def make_string_evaluator(token_parser, stack_evaluator):
   """Return composition of token parser and stack evaluator."""
+
   def string_evaluator(s, rng=None):
     tokens = string_to_tokens(s.strip())
     stack = collections.deque(remove_ignored(token_parser.parse(tokens)))
     output = stack_evaluator(stack, rng) if rng else stack_evaluator(stack)
     return output
+
   return string_evaluator
 
 
 def make_file_processor(proc):
   """Turn string processor into file processor."""
+
   def file_processor(filename, *args, **kwargs):
     s = open(filename).read()
     return proc(s, *args, **kwargs)
+
   return file_processor
-  
+
 
 network_from_string = make_string_evaluator(network_parser, network_eval)
 

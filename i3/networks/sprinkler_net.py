@@ -1,7 +1,6 @@
 """A discrete three-node network."""
 
 from i3 import bayesnet
-from i3 import evid
 
 
 def get(rng):
@@ -30,7 +29,7 @@ def get(rng):
   nodes = [rain_node, sprinkler_node, grass_node]
   edges = [(rain_node, sprinkler_node),
            (rain_node, grass_node),
-           (sprinkler_node, grass_node)]  
+           (sprinkler_node, grass_node)]
   net = bayesnet.BayesNet(
     rng=rng,
     nodes=nodes,

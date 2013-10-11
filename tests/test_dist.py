@@ -1,37 +1,37 @@
 """Test probability distributions."""
-import pytest
-
 import math
+
+import pytest
 import numpy as np
 
-from i3 import distribution
+from i3 import dist
 from i3 import utils
 
 
 def test_discrete_distribution():
   """Elementary tests for discrete distribution class."""
   rng = utils.RandomState(0)
-  dist = distribution.DiscreteDistribution(rng)
+  distribution = dist.DiscreteDistribution(rng)
   with pytest.raises(NotImplementedError):
-    dist.sample()
+    distribution.sample([])
   with pytest.raises(NotImplementedError):
-    dist.log_probability(None)
+    distribution.log_probability([], None)
   with pytest.raises(NotImplementedError):
-    dist.support()
+    distribution.support([])
 
 
 def test_categorical_distribution():
   """Test categorical distribution."""
   rng = utils.RandomState(0)
-  dist = distribution.CategoricalDistribution(
+  distribution = dist.CategoricalDistribution(
     values=["a", "b"],
     probabilities=[.3, .7],
     rng=rng)
-  samples = [dist.sample() for _ in range(10000)]
+  samples = [distribution.sample([]) for _ in range(10000)]
   utils.assert_in_interval(samples.count("a"), .3, 10000, .95)
   utils.assert_in_interval(samples.count("b"), .7, 10000, .95)
   np.testing.assert_almost_equal(
-    .3, math.exp(dist.log_probability("a")))
+    .3, math.exp(distribution.log_probability([], "a")))
   np.testing.assert_almost_equal(
-    .7, math.exp(dist.log_probability("b")))  
-  assert sorted(dist.support()) == ["a", "b"]
+    .7, math.exp(distribution.log_probability([], "b")))
+  assert sorted(distribution.support([])) == ["a", "b"]

@@ -8,11 +8,16 @@ from i3 import utils
 
 
 class MarkovChain(object):
+  """A sequence of dependent (Bayes net) random variables."""
+
   def __init__(self, net, rng):
+    """Initialize Markov chain state."""
     self.net = net
     self.rng = rng
+    self.state = None
 
   def initialize_state(self):
+    """Sample an initial Markov chain state."""
     raise NotImplementedError()
 
   def marginals(self, num_transitions):
@@ -41,7 +46,8 @@ class MarkovChain(object):
     return counts
 
   def transition(self):
-    raise NotImplementedError()    
+    """Transition to next Markov chain state."""
+    raise NotImplementedError()
 
 
 class RejectionChain(MarkovChain):
@@ -68,7 +74,7 @@ class RejectionChain(MarkovChain):
 
 
 class GibbsChain(MarkovChain):
-  """Gibbs sampler."""
+  """A Gibbs Markov chain."""
 
   def __init__(self, net, rng, evidence):
     """Initialize Gibbs sampler.
@@ -90,13 +96,15 @@ class GibbsChain(MarkovChain):
       accepted = self.net.log_probability(self.state) != utils.LOG_PROB_0
 
   def transition(self):
+    """Transition to next chain state by randomly updating each node in net."""
     for node in self.net.nodes():
       if node not in self.evidence:
         self.update_node(node)
 
   def update_node(self, node):
+    """Update a single node using its conditional distribution."""
     markov_blanket_vals = tuple(
       [self.state.data[var.index] for var in node.markov_blanket])
     gibbs_dist = self.gibbs_distributions[node][markov_blanket_vals]
-    self.state.data[node.index] = gibbs_dist.sample()
+    self.state.data[node.index] = gibbs_dist.sample(None)
     

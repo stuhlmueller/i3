@@ -52,7 +52,7 @@ NETWORK_PROBABILITIES = [
   ([1, 1, 2], 0.564 * 0.080 * 0.189),
   ([1, 0, 2], 0.564 * 0.920 * 0.457),
   ([0, 0, 1], 0.436 * 0.128 * 0.333),
-  ([0, 1, 1], 0.436 * 0.872 * 0.000),        
+  ([0, 1, 1], 0.436 * 0.872 * 0.000),
 ]
 
 EVIDENCE_STRING = """2
@@ -67,14 +67,13 @@ MARGINAL_STRING = """MAR
 3 2 0.084297 0.915703 2 0.354608 0.645392 2 0.254609 0.745391"""
 
 MARGINAL_PROBABILITIES = {
-  0 : [0.084297, 0.915703],
-  1 : [0.354608, 0.645392],
-  2 : [0.254609, 0.745391]
+  0: [0.084297, 0.915703],
+  1: [0.354608, 0.645392],
+  2: [0.254609, 0.745391]
 }
 
 
 class TestCPTReordering(object):
-
   def test_v1(self):
     probs = [0.210, 0.333, 0.457, 0.811, 0.000, 0.189]
     old_order = [0, 1]
@@ -93,7 +92,6 @@ class TestCPTReordering(object):
 
 
 class TestNetworkImport(object):
-
   def test_string_import(self):
     """Check that probabilities for imported Bayes net are as expected."""
     for network_string in [NETWORK_STRING_A, NETWORK_STRING_B]:
@@ -110,13 +108,12 @@ class TestNetworkImport(object):
   def test_file_import(self):
     """Check that importing big files doesn't throw errors."""
     rng = utils.RandomState(seed=0)
-    net = triangle_net.get(rng)
-    evidence = triangle_net.evidence(0)
-    marginals = triangle_net.marginals(0)
+    triangle_net.get(rng)
+    triangle_net.evidence(0)
+    triangle_net.marginals(0)
 
 
 class TestEvidenceImport(object):
-  
   def test_string_import(self):
     """Check that imported random worlds look as expected."""
     worlds = uai_import.evidence_from_string(EVIDENCE_STRING)
@@ -128,7 +125,6 @@ class TestEvidenceImport(object):
 
 
 class TestMarginalImport(object):
-
   def test_string_import(self):
     """Check that imported marginals look as expected."""
     marginals = uai_import.marginals_from_string(MARGINAL_STRING)
@@ -136,9 +132,8 @@ class TestMarginalImport(object):
       np.testing.assert_array_almost_equal(
         probs, MARGINAL_PROBABILITIES[index])
 
-    
-class TestToken(object):
 
+class TestToken(object):
   def test_token(self):
     """Check that funcparserlib tokens work as expected."""
     tokens = uai_import.string_to_tokens("foo bar baz")

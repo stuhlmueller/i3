@@ -12,7 +12,7 @@ class TestSprinklerBayesNet(object):
   """Test enumeration on a three-node rain/sprinkler/grass network."""
 
   def setup(self):
-    """Set up random stream and sprinkler network."""    
+    """Set up random stream and sprinkler network."""
     rng = utils.RandomState(seed=0)
     self.net = sprinkler_net.get(rng)
 

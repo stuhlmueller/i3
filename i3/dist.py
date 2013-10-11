@@ -12,21 +12,20 @@ class Distribution(object):
   def __init__(self, rng):
     self.rng = rng
 
-  def sample(self):
+  def sample(self, params):
     """Get a sample from the distribution."""
-    raise NotImplementedError('sample')
+    raise NotImplementedError("sample")
 
-  def log_probability(self, value):
+  def log_probability(self, params, value):
     """Get the log probability of a value."""
-    raise NotImplementedError('probability')
+    raise NotImplementedError("probability")
 
 
 class DiscreteDistribution(Distribution):
   """A discrete probability distribution (sampler, scorer, and support)."""
 
-  def support(self):
-    """Get a list of values in the support of this distribution."""
-    raise NotImplementedError('support')
+  def support(self, params):
+    raise NotImplementedError("support")
 
 
 class CategoricalDistribution(DiscreteDistribution):
@@ -40,24 +39,29 @@ class CategoricalDistribution(DiscreteDistribution):
       probabilities: an iterable of probabilites
     """
     super(CategoricalDistribution, self).__init__(rng)
-    probabilities = utils.normalize(probabilities)
-    self._sampler = rng.categorical_sampler(values, probabilities)
-    self._value_to_logprob = collections.defaultdict(
+    self.support_values = values
+    self.sampler = None
+    self.value_to_logprob = None
+    self.probabilities = utils.normalize(probabilities)
+    self.compile()
+
+  def compile(self):
+    self.sampler = self.rng.categorical_sampler(
+      self.support_values, self.probabilities)
+    self.value_to_logprob = collections.defaultdict(
       lambda: utils.LOG_PROB_0)
-    self._support = []
-    for value, prob in zip(values, probabilities):
-      self._value_to_logprob[value] = utils.safe_log(prob)
-      if prob != 0.0:
-        self._support.append(value)
+    for value, prob in zip(self.support_values, self.probabilities):
+      self.value_to_logprob[value] = utils.safe_log(prob)
 
-  def sample(self):
+  def sample(self, params):
     """Sample a single value from the distribution."""
-    return self._sampler()
+    assert not params
+    return self.sampler()
 
-  def log_probability(self, value):
+  def log_probability(self, params, value):
     """Return the log probability of a given value."""
-    return self._value_to_logprob[value]
+    return self.value_to_logprob[value]
 
-  def support(self):
-    """Return list of all values with non-zero probability."""
-    return self._support
+  def support(self, params):
+    assert not params
+    return self.support_values

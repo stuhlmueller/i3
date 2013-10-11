@@ -4,29 +4,29 @@ from i3 import bayesnet
 
 
 def test_random_world():
-  A, B, C = [bayesnet.BayesNetNode(i) for i in [0, 1, 2]]
+  a, b, c = [bayesnet.BayesNetNode(i) for i in [0, 1, 2]]
   # Empty world
   world = random_world.RandomWorld()
   assert not world
   assert len(world) == 0
   assert len(world.copy()) == 0
-  assert len(world.extend(A, 1)) == 1
-  world[B] = 2
+  assert len(world.extend(a, 1)) == 1
+  world[b] = 2
   assert len(world) == 1
-  assert world[B] == 2
+  assert world[b] == 2
   assert world.items() == [(1, 2)]
-  assert B in world
-  assert A not in world
+  assert b in world
+  assert a not in world
   assert world
   assert list(world) == [1]
-  del world[B]
-  assert B not in world
+  del world[b]
+  assert b not in world
   # Nonempty world
-  nodes = [A, B, C]
+  nodes = [a, b, c]
   values = [True, False, 3]
   world = random_world.RandomWorld(nodes, values)
-  assert set(world.keys()) == set([0, 1, 2])
-  assert set(world.values()) == set([True, False, 3])    
+  assert set(world.keys()) == {0, 1, 2}
+  assert set(world.values()) == {True, False, 3}
   assert world
   assert len(world) == 3
   for node, value in zip(nodes, values):

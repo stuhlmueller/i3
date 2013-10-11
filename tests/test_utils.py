@@ -14,11 +14,13 @@ def test_safelog_base():
     [utils.safe_log(num) for num in nums],
     [math.log(num) for num in nums])
 
+
 def test_safelog_extended():
   """Test that safe_log returns -inf for 0."""
   assert utils.safe_log(0) == utils.NEGATIVE_INFINITY
   assert utils.NEGATIVE_INFINITY == float("-inf")
-  
+
+
 def test_significantly_greater():
   """Test that t-test works."""
   alpha = 0.01
@@ -33,14 +35,14 @@ def test_significantly_greater():
   assert utils.significantly_greater(c, b, alpha)
   assert not utils.significantly_greater(b, c, alpha)
 
-  
+
 class TestRandomState(object):
   """Test RandomState class."""
 
   def setup(self):
     self.rng_1 = utils.RandomState(seed=0)
     self.rng_2 = utils.RandomState(seed=0)
-    
+
   def test_categorical_a(self):
     """Test categorical sampler."""
     num_samples = 100
@@ -58,13 +60,13 @@ class TestRandomState(object):
 
   def test_categorical_b(self):
     with pytest.raises(ValueError):
-      sampler_4 = self.rng_2.categorical_sampler([], [])    
+      self.rng_2.categorical_sampler([], [])
     with pytest.raises(ValueError):
-      sampler_4 = self.rng_2.categorical_sampler([], [1.0])
+      self.rng_2.categorical_sampler([], [1.0])
     with pytest.raises(ValueError):
-      sampler_5 = self.rng_2.categorical_sampler(["A", "B"], [1.0])      
+      self.rng_2.categorical_sampler(["A", "B"], [1.0])
     with pytest.raises(ValueError):
-      sampler_6 = self.rng_2.categorical_sampler(["A"], [0.5, 0.5])
+      self.rng_2.categorical_sampler(["A"], [0.5, 0.5])
 
   def test_categorical_c(self):
     num_samples = 100000
@@ -76,11 +78,11 @@ class TestRandomState(object):
 
   def test_categorical_d(self):
     num_samples = 100000
-    sampler_8 = self.rng_2.categorical_sampler(range(10), [0.1]*10)
+    sampler_8 = self.rng_2.categorical_sampler(range(10), [0.1] * 10)
     samples_8 = [sampler_8() for _ in xrange(num_samples)]
     for i in range(10):
       utils.assert_in_interval(samples_8.count(i), 0.1, num_samples)
-    
+
   def test_random_permutation(self):
     """Test shuffle functionality."""
     array_1 = self.rng_1.random_permutation(5)

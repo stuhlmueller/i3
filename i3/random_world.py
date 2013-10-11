@@ -4,6 +4,7 @@ import pprint
 
 
 def as_index(node_or_index):
+  """Return integer index given node or integer."""
   if hasattr(node_or_index, "index"):
     return node_or_index.index
   else:
@@ -12,6 +13,13 @@ def as_index(node_or_index):
 
 class RandomWorld(object):
   """A mapping from BayesNetNodes to values."""
+
+  def __init__(self, keys=None, values=None):
+    if keys or values:
+      assert len(keys) == len(values)
+      self.data = dict(zip([as_index(key) for key in keys], values))
+    else:
+      self.data = {}
 
   def __nonzero__(self):
     return bool(self.data)
@@ -25,18 +33,11 @@ class RandomWorld(object):
   def __getitem__(self, key, default=None):
     return self.data.get(as_index(key), default)
 
-  def __init__(self, keys=None, values=None):
-    if keys or values:
-      assert len(keys) == len(values)
-      self.data = dict(zip([as_index(key) for key in keys], values))
-    else:
-      self.data = {}
-
   def __iter__(self):
     return self.data.__iter__()
 
   def __len__(self):
-    return len(self.data)    
+    return len(self.data)
 
   def __setitem__(self, key, value):
     self.data[as_index(key)] = value
@@ -60,7 +61,7 @@ class RandomWorld(object):
     copy_world = self.copy()
     copy_world[as_index(key)] = value
     return copy_world
-  
+
   def items(self):
     """Return a list of key-value pairs."""
     return self.data.items()
@@ -70,7 +71,7 @@ class RandomWorld(object):
     return self.data.keys()
 
   def values(self):
-    """Return a copy of random world's values."""    
+    """Return a copy of random world's values."""
     return self.data.values()
 
 

@@ -9,6 +9,7 @@ def get(rng):
 
 
 def get_v1(rng):
+  """Return first factorization of binary network."""
   node_1 = bayesnet.TableBayesNetNode(
     index=0,
     domain_size=2,
@@ -28,6 +29,7 @@ def get_v1(rng):
 
 
 def get_v2(rng):
+  """Return second factorization of binary network."""
   node_2 = bayesnet.TableBayesNetNode(
     index=1,
     domain_size=3,

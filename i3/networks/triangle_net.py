@@ -4,10 +4,12 @@ from i3 import uai_import
 
 data_path = os.path.join(os.path.dirname(__file__), "../../data/")
 
+
 def get(rng):
   filename = os.path.join(data_path, "networks/triangle-n120-s95.uai")
   net = uai_import.load_network(filename, rng)
   return net
+
 
 def evidence(index):
   assert index == 0
@@ -15,6 +17,7 @@ def evidence(index):
   evidence = uai_import.load_evidence(filename)
   assert len(evidence) == 1
   return evidence[0]
+
 
 def marginals(index):
   assert index == 0

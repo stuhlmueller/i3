@@ -3,7 +3,6 @@ from __future__ import division
 
 import math
 import numpy as np
-import operator
 from scipy import stats
 
 
@@ -37,8 +36,8 @@ def logsumexp(a):
 
 def normalize(array):
   """Divide array by its sum to make it sum to 1."""
-  Z = np.sum(array)
-  return [i / Z for i in array]
+  z = np.sum(array)
+  return [i / z for i in array]
 
 
 def significantly_greater(a, b, alpha=0.05):
@@ -53,8 +52,8 @@ def significantly_greater(a, b, alpha=0.05):
     True if null hypothesis rejected, false otherwise
   """
   t, probability = stats.ttest_ind(a, b)
-  p_value = probability/2
-  return p_value < alpha and t > 0  
+  p_value = probability / 2
+  return p_value < alpha and t > 0
 
 
 def assert_in_interval(k, p, n, confidence=.95):
@@ -68,13 +67,13 @@ def assert_in_interval(k, p, n, confidence=.95):
 
   FIXME: Take a more principled approach.
   """
-  k_min, k_max = n * np.array(stats.beta(p * n, (1-p) * n).interval(confidence))
+  k_min, k_max = n * np.array(stats.beta(p * n, (1 - p) * n).interval(confidence))
   assert k_min <= k <= k_max
 
 
 class RandomState(np.random.RandomState):
   """Extend numpy's RandomState with more sampling functions."""
-  
+
   def categorical_sampler(self, values, probabilities):
     """Return a categorical sampler for given values and probabilities."""
     if not len(values) == len(probabilities):
@@ -82,22 +81,20 @@ class RandomState(np.random.RandomState):
     if not values:
       raise ValueError("Categorical sampler needs at least one value!")
     bins = np.add.accumulate([0] + probabilities)
+
     def sampler():
       low = 0
-      low_cdf = bins[low]
       high = len(bins) - 1
-      high_cdf = bins[high]
       p = self.rand()
       while low < high - 1:
         mid = (low + high) // 2
         mid_cdf = bins[mid]
         if p < mid_cdf:
           high = mid
-          high_cdf = mid_cdf
         else:
           low = mid
-          low_cdf = mid_cdf
       return values[low]
+
     return sampler
 
   def random_permutation(self, obj):
@@ -126,9 +123,9 @@ def lexicographic_combinations(domains):
   else:
     for value in domains[0]:
       for lst in lexicographic_combinations(domains[1:]):
-        yield [value] + lst    
+        yield [value] + lst
 
-        
+
 def reordered_list(old_order, new_order, old_list):
   """Given old and new ordering, return list with new ordering."""
   assert set(old_order) == set(new_order)
