@@ -1,16 +1,30 @@
 """Exact inference algorithms for Bayes nets."""
 import math
 
+from i3 import marg
 from i3 import utils
 
 
 class Enumerator(object):
   """Exact inference by enumeration."""
 
-  def __init__(self, net):
+  def __init__(self, net, evidence):
     self.net = net
+    self.evidence = evidence
 
-  def marginalize(self, evidence, query_node):
+  def marginals(self):
+    """Compute marginal distribution for all non-evidence nodes."""
+    # FIXME: Inefficient
+    dists = marg.Marginals()
+    for index, value in self.evidence.items():
+      dists[index] = [0] * self.net.nodes_by_index[index].domain_size
+      dists[index][value] = 1
+    for node in self.net.nodes_by_index:
+      if node not in self.evidence:
+        dists[node] = self.marginalize_node(node)
+    return dists
+
+  def marginalize_node(self, query_node):
     """Compute marginal distribution on query variable given evidence.
 
     Args:
@@ -19,18 +33,18 @@ class Enumerator(object):
       query_node: a BayesNetNode
 
     Returns:
-      dictionary mapping values to probabilities (marginal dist)
+      list of probabilities (marginal dist)
     """
-    assert query_node not in evidence
+    assert query_node not in self.evidence
     log_probs = []
     values = query_node.support
     for value in values:
-      extended_evidence = evidence.extend(query_node, value)
+      extended_evidence = self.evidence.extend(query_node, value)
       log_prob = self.marginalize_nodes(
         extended_evidence, self.net.nodes_by_topology)
       log_probs.append(log_prob)
     probs = utils.normalize([math.exp(log_prob) for log_prob in log_probs])
-    return dict(zip(values, probs))
+    return probs
 
   def marginalize_nodes(self, evidence, nodes):
     """Compute the normalization constant of nodes given evidence.
