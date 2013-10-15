@@ -61,7 +61,7 @@ def distance_scorer(net, start_nodes):
   return scorer
 
 
-def compute_inverse_net(net, start_nodes, end_node, rng):
+def compute_inverse_net(net, start_nodes, end_node, rng, max_inverse_size):
   """Compute a single Bayes net inverse given start and end nodes.
 
   Args:
@@ -69,10 +69,13 @@ def compute_inverse_net(net, start_nodes, end_node, rng):
     start_nodes: a list of BayesNetNodes in net
     end_node: a BayesNetNode
     rng: a RandomState
+    max_inverse_size: going topologically backwards from end node,
+      only include up to this number of nodes in computed inverse
+      edges
             
   Returns:
     inverse_net: a BayesNet with the same number of nodes as input net
-  """
+  """  
   for node in start_nodes + [end_node]:
     assert node in net.nodes_by_index
     assert node.support
@@ -99,29 +102,38 @@ def compute_inverse_net(net, start_nodes, end_node, rng):
   for index in sorted_indices:
     forward_node = net.nodes_by_index[index]
     if forward_node not in observed_nodes:
-      forward_deps = dependent_nodes(forward_node, observed_nodes)
-      for forward_dep in forward_deps:
-        inverse_net.add_edge(
-          inverse_nodes[forward_dep.index], inverse_nodes[index])
+      if net.node_count - index <= max_inverse_size:
+        forward_deps = dependent_nodes(forward_node, observed_nodes)
+        for forward_dep in forward_deps:
+          inverse_net.add_edge(
+            inverse_nodes[forward_dep.index], inverse_nodes[index])
       observed_nodes.add(forward_node)
 
+  # FIXME: the inverse networks should only contain relevant nodes.
+  
   return inverse_net
 
 
-def compute_inverse_map(net, evidence_nodes, rng):
+def compute_inverse_map(net, evidence_nodes, rng, max_inverse_size=None):
   """Given evidence nodes, compute one inverse for each latent node in net.
 
   Args:
     net: a BayesNet
     evidence_nodes: a list of BayesNetNodes in net
     rng: a RandomState
-          
+    max_inverse_size: going topologically backwards from end node,
+      only include up to this number of nodes in computed inverse
+      edges
+  
   Returns:
     inverse_map: a BayesNetMap
   """
+  if max_inverse_size is None:
+    max_inverse_size = net.node_count  
   inverse_map = bayesnet.BayesNetMap()
   for node in net.nodes_by_index:
     if node not in evidence_nodes:
-      inverse_net = compute_inverse_net(net, evidence_nodes, node, rng)
+      inverse_net = compute_inverse_net(
+        net, evidence_nodes, node, rng, max_inverse_size)
       inverse_map.add_net(node, inverse_net)
   return inverse_map
