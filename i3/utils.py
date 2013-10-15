@@ -97,6 +97,10 @@ class RandomState(np.random.RandomState):
 
     return sampler
 
+  def flip(self, p):
+    """Return True with probability p, False otherwise."""
+    return self.rand() < p
+  
   def random_permutation(self, obj):
     """Return permuted copy of array. If given int, create range array."""
     if isinstance(obj, (int, np.integer)):

@@ -97,3 +97,10 @@ class TestRandomState(object):
     for value in array_3:
       assert value in array_4
     assert array_3[0] != array_4[0]
+
+  def test_flip(self):
+    """Test Boolean coin."""
+    num_samples = 10000
+    samples = [self.rng_1.flip(.3) for _ in xrange(num_samples)]
+    utils.assert_in_interval(samples.count(True), 0.3, num_samples)
+    utils.assert_in_interval(samples.count(False), 0.7, num_samples)
