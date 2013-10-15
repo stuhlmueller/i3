@@ -1,6 +1,7 @@
 """A discrete three-node network."""
 
 from i3 import bayesnet
+from i3 import evid
 
 
 def get(rng):
@@ -36,3 +37,8 @@ def get(rng):
     edges=edges)
   net.compile()
   return net
+
+
+def evidence(index):
+  assert index == 0
+  return evid.Evidence(keys=[2], values=[1])
