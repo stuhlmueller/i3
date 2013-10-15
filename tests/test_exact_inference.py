@@ -21,6 +21,6 @@ class TestSprinklerBayesNet(object):
     grass_node = self.net.find_node("Grass")
     rain_node = self.net.find_node("Rain")
     evidence = random_world.RandomWorld([grass_node], [1])
-    enumerator = exact_inference.Enumerator(self.net)
-    inferred_dist = enumerator.marginalize(evidence, rain_node)
+    enumerator = exact_inference.Enumerator(self.net, evidence)
+    inferred_dist = enumerator.marginalize_node(rain_node)
     np.testing.assert_almost_equal(inferred_dist[1], 0.24277141298417898)

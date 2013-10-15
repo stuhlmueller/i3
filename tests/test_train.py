@@ -23,8 +23,8 @@ def test_trainer():
 
   # Compare marginal log probability for evidence node with prior marginals.
   empty_world = random_world.RandomWorld()
-  enumerator = exact_inference.Enumerator(net)
-  marginals = enumerator.marginalize(empty_world, net.find_node("Grass"))
+  enumerator = exact_inference.Enumerator(net, empty_world)
+  marginals = enumerator.marginalize_node(net.find_node("Grass"))
   for value in [0, 1]:
     log_prob_true = math.log(marginals[value])
     for inverse_net in inverse_map.values():
@@ -42,8 +42,7 @@ def test_trainer():
       for (index, value) in world.items():
         counts[index][value] += 1
     for index in [0, 1, 2]:
-      marginals = enumerator.marginalize(empty_world, net.nodes_by_index[index])
-      true_dist = [p for (_, p) in sorted(marginals.items())]
+      true_dist = enumerator.marginalize_node(net.nodes_by_index[index])
       empirical_dist = utils.normalize(counts[index])
       for (p_true, p_empirical) in zip(true_dist, empirical_dist):
         assert abs(p_true - p_empirical) < .1

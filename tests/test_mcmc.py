@@ -14,10 +14,9 @@ class TestMarkovChain(object):
 
   def setup(self):
     self.rng = utils.RandomState(seed=0)
-    self.net = sprinkler_net.get(self.rng)
 
   def test(self):
-    chain = mcmc.MarkovChain(self.net, self.rng)
+    chain = mcmc.MarkovChain(self.rng)
     with pytest.raises(NotImplementedError):
       chain.initialize_state()
     with pytest.raises(NotImplementedError):
@@ -45,8 +44,8 @@ class TestSprinkler(object):
       chain.transition()
       if chain.state[rain_node]:
         rain_count += 1
-    enumerator = exact_inference.Enumerator(self.net)
-    exact_dist = enumerator.marginalize(evidence, rain_node)
+    enumerator = exact_inference.Enumerator(self.net, evidence)
+    exact_dist = enumerator.marginalize_node(rain_node)
     rain_prob = exact_dist[True]
     print rain_prob, rain_count
     utils.assert_in_interval(rain_count, rain_prob, num_samples, .95)
