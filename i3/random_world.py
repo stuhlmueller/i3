@@ -30,8 +30,8 @@ class RandomWorld(object):
   def __delitem__(self, key):
     del self.data[as_index(key)]
 
-  def __getitem__(self, key, default=None):
-    return self.data.get(as_index(key), default)
+  def __getitem__(self, key):
+    return self.data[as_index(key)]
 
   def __iter__(self):
     return self.data.__iter__()
