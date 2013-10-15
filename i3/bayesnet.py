@@ -13,15 +13,22 @@ class BayesNetNode(object):
   def __init__(self, index, name=None):
     """Initializes Bayes net node.
 
+    Assumption: the network is fixed--once we use set_net(net), the
+    structure of net does not change. If this assumption is violated,
+    the caching of parents and children will cause incorrect lookups.
+
     Args:
       index: Bayesnet-unique identifier (integer)
       name: a string (optional)
+
     """
     self.index = index
     self.net = None
     self.markov_blanket = None
     self.name = name
     self.compiled = False
+    self._parents = None
+    self._children = None
 
   def __str__(self):
     return "<{}>".format(self.name or self.index)
@@ -37,7 +44,6 @@ class BayesNetNode(object):
 
   def compute_markov_blanket(self):
     """Compute the Markov blanket for this node."""
-    assert self.net
     coparents = [parent for child in self.children for parent in child.parents]
     overcomplete_blanket = list(self.parents) + list(self.children) + coparents
     markov_blanket = sorted(
@@ -47,6 +53,7 @@ class BayesNetNode(object):
 
   def compile(self):
     """Compute and store Markov blanket."""
+    assert self.net
     self.markov_blanket = self.compute_markov_blanket()
     self.compiled = True
 
@@ -65,11 +72,15 @@ class BayesNetNode(object):
 
   @property
   def parents(self):
-    return sorted(self.net.predecessors(self))
+    if self._parents is None:
+      self._parents = sorted(self.net.predecessors(self))
+    return self._parents
 
   @property
   def children(self):
-    return sorted(self.net.successors(self))
+    if self._children is None:
+      self._children = sorted(self.net.successors(self))
+    return self._children
 
 
 class DiscreteBayesNetNode(BayesNetNode):
@@ -282,10 +293,11 @@ class BayesNet(networkx.DiGraph):
       node.compile()
     self.compiled = True
 
-  def sample(self, world=None):
+  def sample(self, world=None, mutate_world=False):
     """Sample a random world, potentially based on existing world."""
     if world:
-      world = world.copy()
+      if not mutate_world:
+        world = world.copy()
     else:
       world = random_world.RandomWorld()
     for node in self.nodes_by_topology:
