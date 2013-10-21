@@ -14,7 +14,7 @@ class Marginals(random_world.RandomWorld):
           return False
         return True
     else:
-      return super(Marginals, self).__lt__(other)
+      return super(Marginals, self) < other
 
   def __gt__(self, other):
     if type(other) == float:
@@ -23,7 +23,7 @@ class Marginals(random_world.RandomWorld):
           return False
         return True
     else:
-      return super(Marginals, self).__lt__(other)
+      return super(Marginals, self) > other
 
   def __ge__(self, other):
     return not self < other

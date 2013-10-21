@@ -132,6 +132,10 @@ class TestSprinklerBayesNet(object):
     with pytest.raises(ValueError):
       self.net.find_node("Foo")
 
+  def test_evidence(self):
+    with pytest.raises(ValueError):
+      sprinkler_net.evidence(-1)
+
 
 class TestBayesNetMap(object):
   """Test BayesNetMap using binary nets."""

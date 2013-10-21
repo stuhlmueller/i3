@@ -80,3 +80,22 @@ class TestTriangleNet(object):
           num_nodes_with_parents += 1
       assert (num_nodes_with_parents ==
               min(max_inverse_size, self.net.node_count - len(evidence_nodes)))
+
+
+def test_distance_scorer():
+  rng = utils.RandomState(seed=0)
+  net = triangle_net.get(rng)
+  nodes = net.nodes_by_index
+  for i in [1, 2]:
+    start_nodes = nodes[:i]
+    scorer = invert.distance_scorer(net, start_nodes)
+    end_nodes = [node for node in nodes if node not in start_nodes]
+    for end_node in end_nodes:
+      for node in nodes:
+        score = scorer(node, end_node)
+        if node == end_node:
+          assert score == float("-inf")
+        elif node in start_nodes:
+          assert score == float("+inf")
+        else:
+          assert float("-inf") < score < float("+inf")
