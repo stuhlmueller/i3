@@ -7,6 +7,30 @@ from i3 import random_world
 class Marginals(random_world.RandomWorld):
   """A mapping from BayesNetNodes to lists of probabilities."""
 
+  def __lt__(self, other):
+    if type(other) == float:
+      for v in self.values():
+        if v >= other:
+          return False
+        return True
+    else:
+      return super(Marginals, self).__lt__(other)
+
+  def __gt__(self, other):
+    if type(other) == float:
+      for v in self.values():
+        if v <= other:
+          return False
+        return True
+    else:
+      return super(Marginals, self).__lt__(other)
+
+  def __ge__(self, other):
+    return not self < other
+
+  def __le__(self, other):
+    return not other < self
+
   def __sub__(self, other):
     assert len(self) == len(other)
     diff = Marginals()

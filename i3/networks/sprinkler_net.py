@@ -40,5 +40,14 @@ def get(rng):
 
 
 def evidence(index):
-  assert index == 0
-  return evid.Evidence(keys=[2], values=[1])
+  if index == 0:
+    key, value = 2, 1
+  elif index == 1:
+    key, value = 2, 0
+  elif index == 2:
+    key, value = 1, 0
+  elif index == 3:
+    key, value = 1, 1
+  else:
+    raise ValueError("Unknown evidence index.")
+  return evid.Evidence(keys=[key], values=[value])

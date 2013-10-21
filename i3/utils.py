@@ -100,7 +100,12 @@ class RandomState(np.random.RandomState):
   def flip(self, p):
     """Return True with probability p, False otherwise."""
     return self.rand() < p
-  
+
+  def choice(self, xs):
+    """Uniformly select from list xs."""
+    i = self.randint(len(xs))
+    return xs[i]
+
   def random_permutation(self, obj):
     """Return permuted copy of array. If given int, create range array."""
     if isinstance(obj, (int, np.integer)):

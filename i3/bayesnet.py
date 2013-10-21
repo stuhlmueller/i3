@@ -22,16 +22,16 @@ class BayesNetNode(object):
       name: a string (optional)
 
     """
+    self._children = None
+    self._parents = None
+    self.compiled = False
     self.index = index
-    self.net = None
     self.markov_blanket = None
     self.name = name
-    self.compiled = False
-    self._parents = None
-    self._children = None
+    self.net = None
 
   def __str__(self):
-    return "<{}>".format(self.name or self.index)
+    return str(self.name or self.index)
 
   def __repr__(self):
     return str(self)
@@ -108,11 +108,6 @@ class DistBayesNetNode(DiscreteBayesNetNode):
     self.distribution = None
     if distribution:
       self.set_distribution(distribution)
-
-  def compile(self):
-    """Check that distribution is available, then compute Markov blanket."""
-    assert self.distribution
-    super(DistBayesNetNode, self).compile()
 
   def set_distribution(self, distribution):
     """Set distribution used for sampling and scoring."""
@@ -284,7 +279,8 @@ class BayesNet(networkx.DiGraph):
 
   def compile(self):
     """Compute topological order, Markov blanket, etc."""
-    self.nodes_by_topology = tuple(networkx.topological_sort(self))
+    if not self.nodes_by_topology:
+      self.nodes_by_topology = tuple(networkx.topological_sort(self))
     self.nodes_by_index = sorted(self.nodes(), key=lambda node: node.index)
     self.node_count = self.number_of_nodes()
     assert ([node.index for node in self.nodes_by_index] ==
@@ -329,7 +325,7 @@ class BayesNet(networkx.DiGraph):
     for node in self.nodes_by_index:
       if node.name == name:
         return node
-    raise ValueError("Node with name {} not found!", name)
+    raise ValueError("Node with name {} not found!".format(name))
 
 
 class BayesNetMap(object):
