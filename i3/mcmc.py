@@ -52,18 +52,11 @@ class BayesNetChain(MarkovChain):
     Returns:
       empirical marginals
     """
-    counts = marg.Marginals(
-      self.net.nodes_by_index,
-      [[0] * len(node.support) for node in self.net.nodes_by_index]
-    )
+    counter = marg.MarginalCounter(self.net)
     for i in xrange(num_transitions):
       self.transition()
-      for (index, value) in self.state.items():
-        counts[index][value] += 1
-    for node in self.net.nodes_by_index:
-      for value in node.support:
-        counts[node][value] /= num_transitions
-    return counts
+      counter.observe(self.state)
+    return counter.marginals()
 
 
 class RejectionChain(BayesNetChain):
