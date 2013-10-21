@@ -18,3 +18,4 @@ def test_marg():
   assert marginals_a - marginals_b >= .001
   assert not marginals_a - marginals_b < .01
   assert marginals_a > None
+  assert not marginals_a < None
