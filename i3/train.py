@@ -22,8 +22,8 @@ class Trainer(object):
   def observe(self, world):
     """Update learners given random world."""
     for ((parent_indices, node_index), learner) in self.learners.items():
-      parent_values = [world[index] for index in parent_indices]
-      node_value = world[node_index]
+      parent_values = [world.data[index] for index in parent_indices]
+      node_value = world.data[node_index]
       learner.observe(parent_values, node_value)
 
   def finalize(self):

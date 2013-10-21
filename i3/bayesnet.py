@@ -115,12 +115,12 @@ class DistBayesNetNode(DiscreteBayesNetNode):
 
   def sample(self, world):
     """Sample from distribution using parent vals as parameters."""
-    parent_values = [world[parent] for parent in self.parents]
+    parent_values = [world.data[parent.index] for parent in self.parents]
     return self.distribution.sample(parent_values)
 
   def log_probability(self, world, node_value):
     """Compute log probability of value given parent values."""
-    parent_values = [world[parent] for parent in self.parents]
+    parent_values = [world.data[parent.index] for parent in self.parents]
     return self.distribution.log_probability(parent_values, node_value)
 
 
@@ -298,7 +298,7 @@ class BayesNet(networkx.DiGraph):
       world = random_world.RandomWorld()
     for node in self.nodes_by_topology:
       if not node in world:
-        world[node] = node.sample(world)
+        world.data[node.index] = node.sample(world)
     return world
 
   def log_probability(self, world):
