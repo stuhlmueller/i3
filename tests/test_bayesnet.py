@@ -62,7 +62,7 @@ class TestBinaryBayesNet(object):
     assert world[self.node_2] == 2
     assert self.net.log_probability(world) == utils.LOG_PROB_1
     # Second random world (node 1 fixed)
-    world = self.net.sample({self.node_1: 0})
+    world = self.net.sample(random_world.RandomWorld([self.node_1], [0]))
     assert world[self.node_2] == 1
     assert self.net.log_probability(world) == utils.LOG_PROB_0
 
