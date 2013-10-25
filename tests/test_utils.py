@@ -104,3 +104,17 @@ class TestRandomState(object):
     samples = [self.rng_1.flip(.3) for _ in xrange(num_samples)]
     utils.assert_in_interval(samples.count(True), 0.3, num_samples)
     utils.assert_in_interval(samples.count(False), 0.7, num_samples)
+
+
+def test_lexicographic_combinations():
+  """Test ordered combinations."""
+  mappings = (
+    ([], [[]]),
+    ([[], [1]], []),
+    ([[1], []], []),
+    ([[1], [2]], [[1, 2]]),
+    ([[1], [2, 3]], [[1, 2], [1, 3]]),
+    ([[1, 3], [2]], [[1, 2], [3, 2]])
+  )
+  for (input, output) in mappings:
+    assert list(utils.lexicographic_combinations(input)) == output
