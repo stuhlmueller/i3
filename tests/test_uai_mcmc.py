@@ -1,6 +1,7 @@
 """Test MCMC on imported UAI networks."""
 from __future__ import division
 
+import cloud
 import cProfile
 import pytest
 
@@ -13,9 +14,10 @@ from i3.networks import triangle_net
 
 
 class TestTriangleNetwork(object):
-  
-  def setup(self, smooth=95):
-    self.rng = utils.RandomState(seed=1)
+
+  def setup(self, smooth=95, seed=None):
+    seed = 0 if seed is None else seed
+    self.rng = utils.RandomState(seed=seed)
     self.net = triangle_net.get(self.rng, smooth=smooth)
     self.evidence = triangle_net.evidence(0, smooth=smooth)
     self.marginals = triangle_net.marginals(0, smooth=smooth)
@@ -30,8 +32,8 @@ class TestTriangleNetwork(object):
     assert average_error < .05
 
   @pytest.mark.parametrize("precompute_gibbs", [True, False])
-  def test_inverse_mcmc(self, max_inverse_size=1, num_training_samples=50000,
-                        num_test_samples=10000, precompute_gibbs=False):
+  def test_inverse_mcmc(self, precompute_gibbs, max_inverse_size=1,
+                        num_training_samples=50000, num_test_samples=10000):
     evidence_nodes = [self.net.nodes_by_index[self.evidence.keys()[0]]]
 
     print "Computing inverse nets..."    
@@ -82,19 +84,5 @@ class TestTriangleNetwork(object):
     print "Gibbs:", gibbs_error
 
     assert gibbs_error < .03
-    assert inverses_error < .03    
-
-
-def run_test():
-  t = TestTriangleNetwork()
-  t.setup(smooth=95)
-  t.test_inverse_mcmc(
-    max_inverse_size=1,
-    num_training_samples=50000,
-    num_test_samples=10000,
-    precompute_gibbs=False)
-
-
-if __name__ == "__main__":
-  # cProfile.run("run_test()", sort="cumulative")
-  run_test()
+    assert inverses_error < .03
+    return gibbs_error, inverses_error
