@@ -126,9 +126,8 @@ def lexicographic_combinations(domains):
     a lexicographically ordered list of lists of values
     [[a0, b0, c0], [a0, b0, c1], ..., [an, bn, cn]]
   """
-  if len(domains) == 1:
-    for value in domains[0]:
-      yield [value]
+  if len(domains) == 0:
+    yield []
   else:
     for value in domains[0]:
       for lst in lexicographic_combinations(domains[1:]):
