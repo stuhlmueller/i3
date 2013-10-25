@@ -3,8 +3,11 @@ from __future__ import division
 import math
 import numpy as np
 
+from i3 import exact_inference
 from i3 import learn
+from i3 import random_world
 from i3 import utils
+from i3.networks import sprinkler_net
 
 
 def check_sampler(sampler, probabilities, num_samples, confidence=.95):
@@ -22,6 +25,7 @@ def check_scorer(log_scorer, probabilities):
 
 
 def test_count_learner():
+  """Verify that count learner makes correct predictions."""  
   rng = utils.RandomState(seed=0)
   learner = learn.CountLearner(support=[0, 1], rng=rng)
   num_samples = 10000
@@ -49,3 +53,21 @@ def test_count_learner():
 
   # For the sake of completeness
   learner.finalize()
+
+
+def test_gibbs_learner():
+  """Verify that Gibbs learner makes same predictions as enumerator."""
+  num_samples = 10000
+  rng = utils.RandomState(seed=0)
+  net = sprinkler_net.get(rng)
+  for node in net.nodes_by_index:
+    learner = learn.GibbsLearner(node, rng)
+    learner.finalize()
+    for markov_blanket_values in utils.lexicographic_combinations([[0, 1]] * len(node.markov_blanket)):
+      world = random_world.RandomWorld(
+        [n.index for n in node.markov_blanket],
+        markov_blanket_values)
+      enumerator = exact_inference.Enumerator(net, world)
+      probabilities = enumerator.marginalize_node(node)
+      check_scorer(lambda v: learner.log_probability(markov_blanket_values, v), probabilities)
+      check_sampler(lambda: learner.sample(markov_blanket_values), probabilities, num_samples)

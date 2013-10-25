@@ -4,6 +4,7 @@ import collections
 import math
 
 from i3 import dist
+from i3 import gibbs
 from i3 import utils
 
 
@@ -38,4 +39,27 @@ class CountLearner(dist.DiscreteDistribution):
 
   def finalize(self):
     """No compilation step necessary."""
+    pass
+
+
+class GibbsLearner(dist.DiscreteDistribution):
+  """Learn a family of distributions by exact computation of conditionals."""
+
+  def __init__(self, node, rng):
+    self.gibbs_distributions = gibbs.all_gibbs_distributions(node, rng)
+
+  def log_probability(self, params, value):
+    return self.gibbs_distributions[tuple(params)].log_probability(None, value)
+
+  def observe(self, params, value):
+    # Gibbs learner doesn't make use of observations.
+    pass
+
+  def sample(self, params):
+    return self.gibbs_distributions[tuple(params)].sample(None)
+
+  def support(self, params):
+    return self.gibbs_distributions[tuple(params)].support(None)
+
+  def finalize(self):
     pass
