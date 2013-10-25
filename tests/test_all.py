@@ -23,7 +23,7 @@ def run_test(rng, net, evidence, proposal_size):
     net, evidence_nodes, rng, max_inverse_size=proposal_size)
 
   print "Initializing trainer..."
-  trainer = train.Trainer(inverse_map)
+  trainer = train.Trainer(net, inverse_map, precompute_gibbs=False)
 
   print "Training..."
   training_sampler = mcmc.GibbsChain(net, rng, evidence)
@@ -67,3 +67,7 @@ def test_sprinkler_net(proposal_size, evidence_index):
   net = sprinkler_net.get(rng)
   evidence = sprinkler_net.evidence(evidence_index)
   run_test(rng, net, evidence, proposal_size=proposal_size)
+
+
+if __name__ == "__main__":
+  test_sprinkler_net(proposal_size=2, evidence_index=2)
