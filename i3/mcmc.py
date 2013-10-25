@@ -53,7 +53,7 @@ class BayesNetChain(MarkovChain):
       empirical marginals
     """
     counter = marg.MarginalCounter(self.net)
-    for i in xrange(num_transitions):
+    for _ in xrange(num_transitions):
       self.transition()
       counter.observe(self.state)
     return counter.marginals()
@@ -131,11 +131,17 @@ class InverseChain(BayesNetChain):
     super(InverseChain, self).initialize_state()
 
   def transition(self):
-    inverse_net = self.rng.choice(self.inverse_nets)
+    num_proposals_accepted = 0
+    for inverse_net in self.inverse_nets:
+      num_proposals_accepted += self.update(inverse_net)
+    return num_proposals_accepted
+
+  def update(self, inverse_net):
+    proposal_size = self.rng.randint(self.proposal_size) + 1
 
     # We never propose to evidence nodes
     proposal_nodes = [
-      node for node in inverse_net.nodes_by_topology[-self.proposal_size:]
+      node for node in inverse_net.nodes_by_topology[-proposal_size:]
       if node.index not in self.evidence]
 
     proposal = self.state.copy()
@@ -164,3 +170,6 @@ class InverseChain(BayesNetChain):
 
     if accept:
       self.state = proposal
+      return 1
+
+    return 0
