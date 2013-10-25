@@ -31,8 +31,10 @@ class TestTriangleNetwork(object):
     print average_error
     assert average_error < .05
 
-  @pytest.mark.parametrize("precompute_gibbs", [True, False])
-  def test_inverse_mcmc(self, precompute_gibbs, max_inverse_size=1,
+  @pytest.mark.parametrize(
+    "precompute_gibbs,max_inverse_size",
+    utils.lexicographic_combinations([[True, False], [1, 2]]))
+  def test_inverse_mcmc(self, precompute_gibbs, max_inverse_size,
                         num_training_samples=50000, num_test_samples=10000):
     evidence_nodes = [self.net.nodes_by_index[self.evidence.keys()[0]]]
 
