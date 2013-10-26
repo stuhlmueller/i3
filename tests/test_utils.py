@@ -118,3 +118,23 @@ def test_lexicographic_combinations():
   )
   for (input, output) in mappings:
     assert list(utils.lexicographic_combinations(input)) == output
+
+
+def test_is_range():
+  """Check function that tests if a list is a range."""
+  mappings = (
+    ([], 0, True),
+    ([], 1, True),    
+    ([0], 0, True),
+    ([1], 1, True),
+    ([0], 1, False),
+    ([1], 0, False),
+    ([0, 1], 0, True),
+    ([1, 2], 1, True),
+    ([0, 1], 1, False),
+    ([1, 0], 0, False),
+    ([0, 1, 2, 3, 4, 5, 6], 0, True),
+    ([1, 2, 3, 4, 5, 6, 7], 1, True)
+  )  
+  for (input_list, input_start, output) in mappings:
+    assert utils.is_range(input_list, start=input_start) == output

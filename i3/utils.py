@@ -140,3 +140,14 @@ def reordered_list(old_order, new_order, old_list):
   assert len(old_order) == len(old_list)
   index_to_element = dict(zip(old_order, old_list))
   return [index_to_element[i] for i in new_order]
+
+
+def is_range(xs, start=0):
+  i = start
+  for x in xs:
+    if not x == i:
+      return False
+    i += 1
+  return True
+  
+  
