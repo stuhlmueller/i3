@@ -7,3 +7,4 @@ networkx>=1.8.1
 scipy>=0.9.0
 funcparserlib>=0.3.6
 cloud>=2.8.5
+sklearn>=0.14
