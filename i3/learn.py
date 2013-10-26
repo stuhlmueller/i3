@@ -2,6 +2,7 @@ from __future__ import division
 
 import collections
 import math
+from sklearn import linear_model
 
 from i3 import dist
 from i3 import gibbs
@@ -46,6 +47,7 @@ class GibbsLearner(dist.DiscreteDistribution):
   """Learn a family of distributions by exact computation of conditionals."""
 
   def __init__(self, node, rng):
+    super(GibbsLearner, self).__init__(rng)
     self.gibbs_distributions = gibbs.all_gibbs_distributions(node, rng)
 
   def log_probability(self, params, value):
@@ -63,3 +65,47 @@ class GibbsLearner(dist.DiscreteDistribution):
 
   def finalize(self):
     pass
+
+
+identity_transformer = lambda xs: xs
+
+square_transformer = lambda xs: [xi*xj for xi in xs for xj in xs]
+
+class LogisticRegressionLearner(dist.DiscreteDistribution):
+  """Learn a family of distributions using (batch) logistic regression."""
+  
+  def __init__(self, support, rng, transform_inputs=None):
+    super(LogisticRegressionLearner, self).__init__(rng)
+    self.predictor = linear_model.LogisticRegression(penalty="l2")
+    self.inputs = []
+    self.outputs = []
+    self._support = support
+    if transform_inputs is None:
+      self.transform_inputs = identity_transformer
+    else:
+      self.transform_inputs = transform_inputs
+
+  def log_probability(self, params, value):
+    inputs = self.transform_inputs(params)
+    probs = self.predictor.predict_proba(inputs)[0]
+    return probs[value]
+
+  def observe(self, params, value):
+    inputs = self.transform_inputs(params)
+    self.inputs.append(inputs)
+    self.outputs.append(value)
+
+  def sample(self, params):
+    inputs = self.transform_inputs(params)    
+    probs = self.predictor.predict_proba(inputs)[0]
+    return self.rng.categorical(self._support, probs)
+
+  def support(self, params):
+    return self._support
+
+  def finalize(self):
+    self.predictor.fit(self.inputs, self.outputs)
+    self.inputs = []
+    self.outputs = []
+    assert list(self.predictor.classes_) == self._support
+    assert utils.is_range(self._support)
