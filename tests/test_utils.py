@@ -83,6 +83,14 @@ class TestRandomState(object):
     for i in range(10):
       utils.assert_in_interval(samples_8.count(i), 0.1, num_samples)
 
+  def test_categorical_e(self):
+    num_samples = 100000
+    sample = lambda: self.rng_2.categorical(["A", "B", "C"], [0.1, 0.3, 0.6])
+    samples = [sample() for _ in xrange(num_samples)]
+    utils.assert_in_interval(samples.count("A"), 0.1, num_samples)
+    utils.assert_in_interval(samples.count("B"), 0.3, num_samples)
+    utils.assert_in_interval(samples.count("C"), 0.6, num_samples)    
+
   def test_random_permutation(self):
     """Test shuffle functionality."""
     array_1 = self.rng_1.random_permutation(5)

@@ -71,6 +71,19 @@ def assert_in_interval(k, p, n, confidence=.95):
   assert k_min <= k <= k_max
 
 
+def search(xs, x):
+  low = 0
+  high = len(xs) - 1
+  while low < high - 1:
+    mid = (low + high) // 2
+    mid_value = xs[mid]
+    if x < mid_value:
+      high = mid
+    else:
+      low = mid
+  return low
+
+
 class RandomState(np.random.RandomState):
   """Extend numpy's RandomState with more sampling functions."""
 
@@ -81,21 +94,18 @@ class RandomState(np.random.RandomState):
     if not values:
       raise ValueError("Categorical sampler needs at least one value!")
     bins = np.add.accumulate([0] + probabilities)
-
     def sampler():
-      low = 0
-      high = len(bins) - 1
       p = self.rand()
-      while low < high - 1:
-        mid = (low + high) // 2
-        mid_cdf = bins[mid]
-        if p < mid_cdf:
-          high = mid
-        else:
-          low = mid
-      return values[low]
-
+      i = search(bins, p)
+      return values[i]
     return sampler
+
+  def categorical(self, values, probabilities):
+    """Sample from a categorical distribution."""
+    bins = np.add.accumulate([0] + probabilities)
+    p = self.rand()
+    i = search(bins, p)
+    return values[i]
 
   def flip(self, p):
     """Return True with probability p, False otherwise."""
