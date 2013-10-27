@@ -11,26 +11,26 @@ def data_path():
     return os.path.join(os.path.dirname(__file__), "../../data/")
 
 
-def get(rng, smooth=95):
+def get(rng, determinism=95):
   filename = os.path.join(
-    data_path(), "networks/triangle-n120-s{}.uai".format(smooth))
+    data_path(), "networks/triangle-n120-s{}.uai".format(determinism))
   net = uai_import.load_network(filename, rng)
   return net
 
 
-def evidence(index, smooth=95):
+def evidence(index, determinism=95):
   assert index == 0
   filename = os.path.join(
-    data_path(), "evidence/triangle-n120-s{}-1.evid".format(smooth))
+    data_path(), "evidence/triangle-n120-s{}-1.evid".format(determinism))
   evidence = uai_import.load_evidence(filename)
   assert len(evidence) == 1
   return evidence[0]
 
 
-def marginals(index, smooth=95):
+def marginals(index, determinism=95):
   assert index == 0
   filename = os.path.join(
-    data_path(), "marginals/triangle-n120-s{}-1.mar".format(smooth))
+    data_path(), "marginals/triangle-n120-s{}-1.mar".format(determinism))
   marginals = uai_import.load_marginals(filename)
   return marginals
 

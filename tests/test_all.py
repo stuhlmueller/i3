@@ -59,6 +59,7 @@ def run_test(rng, net, evidence, proposal_size):
   assert true_marginals - inverse_marginals < .02
 
 
+@pytest.mark.slow
 @pytest.mark.parametrize(
   ("proposal_size", "evidence_index"),
   utils.lexicographic_combinations([[1, 2, 3], [0, 1, 2, 3]]))

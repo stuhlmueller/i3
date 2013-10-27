@@ -15,6 +15,7 @@ class TestInverseChain(object):
     self.rng = utils.RandomState(seed=0)
     self.net = sprinkler_net.get(self.rng)
 
+  @pytest.mark.slow
   @pytest.mark.parametrize(
     ("proposal_size", "evidence_index"),
     utils.lexicographic_combinations([[1, 2, 3], [0, 1, 2, 3]]))

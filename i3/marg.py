@@ -41,6 +41,9 @@ class Marginals(random_world.RandomWorld):
         diff[i] += abs(p - q) / len(ps)
     return diff
 
+  def mean(self):
+    return sum(self.values()) / len(self)
+
 
 class MarginalCounter(object):
   """Compute marginals by observing samples."""
