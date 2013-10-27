@@ -15,6 +15,7 @@ class TestInverseChain(object):
     self.rng = utils.RandomState(seed=0)
     self.net = sprinkler_net.get(self.rng)
 
+  @pytest.mark.slow
   @pytest.mark.parametrize(
     ("proposal_size", "evidence_index"),
     utils.lexicographic_combinations([[1, 2, 3], [0, 1, 2, 3]]))
@@ -25,7 +26,7 @@ class TestInverseChain(object):
     inverse_map = invert.compute_inverse_map(
       self.net, evidence_nodes, self.rng)
     # 2. Initialize inverses with uniform distributions
-    trainer = train.Trainer(inverse_map)
+    trainer = train.Trainer(self.net, inverse_map, precompute_gibbs=False)
     # 3. Generate random data
     for _ in xrange(3):
       world = random_world.RandomWorld(

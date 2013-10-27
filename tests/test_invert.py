@@ -61,6 +61,7 @@ class TestTriangleNet(object):
     self.rng = utils.RandomState(seed=0)
     self.net = triangle_net.get(self.rng)
 
+  @pytest.mark.slow
   @pytest.mark.parametrize("max_inverse_size", [1, 2, 3, 5, 10, 20, 120])
   def test_max_inverse_size(self, max_inverse_size):
     evidence = triangle_net.evidence(0)

@@ -71,6 +71,19 @@ def assert_in_interval(k, p, n, confidence=.95):
   assert k_min <= k <= k_max
 
 
+def search(xs, x):
+  low = 0
+  high = len(xs) - 1
+  while low < high - 1:
+    mid = (low + high) // 2
+    mid_value = xs[mid]
+    if x < mid_value:
+      high = mid
+    else:
+      low = mid
+  return low
+
+
 class RandomState(np.random.RandomState):
   """Extend numpy's RandomState with more sampling functions."""
 
@@ -81,21 +94,18 @@ class RandomState(np.random.RandomState):
     if not values:
       raise ValueError("Categorical sampler needs at least one value!")
     bins = np.add.accumulate([0] + probabilities)
-
     def sampler():
-      low = 0
-      high = len(bins) - 1
       p = self.rand()
-      while low < high - 1:
-        mid = (low + high) // 2
-        mid_cdf = bins[mid]
-        if p < mid_cdf:
-          high = mid
-        else:
-          low = mid
-      return values[low]
-
+      i = search(bins, p)
+      return values[i]
     return sampler
+
+  def categorical(self, values, probabilities):
+    """Sample from a categorical distribution."""
+    bins = np.add.accumulate([0] + probabilities)
+    p = self.rand()
+    i = search(bins, p)
+    return values[i]
 
   def flip(self, p):
     """Return True with probability p, False otherwise."""
@@ -127,9 +137,8 @@ def lexicographic_combinations(domains):
     a lexicographically ordered list of lists of values
     [[a0, b0, c0], [a0, b0, c1], ..., [an, bn, cn]]
   """
-  if len(domains) == 1:
-    for value in domains[0]:
-      yield [value]
+  if len(domains) == 0:
+    yield []
   else:
     for value in domains[0]:
       for lst in lexicographic_combinations(domains[1:]):
@@ -142,3 +151,14 @@ def reordered_list(old_order, new_order, old_list):
   assert len(old_order) == len(old_list)
   index_to_element = dict(zip(old_order, old_list))
   return [index_to_element[i] for i in new_order]
+
+
+def is_range(xs, start=0):
+  i = start
+  for x in xs:
+    if not x == i:
+      return False
+    i += 1
+  return True
+  
+  

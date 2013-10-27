@@ -40,3 +40,38 @@ class Marginals(random_world.RandomWorld):
         q = other[i][j]
         diff[i] += abs(p - q) / len(ps)
     return diff
+
+  def mean(self):
+    return sum(self.values()) / len(self)
+
+
+class MarginalCounter(object):
+  """Compute marginals by observing samples."""
+
+  def __init__(self, net):
+    """Initialize counter using BayesNet."""
+    self.net = net
+    self.counts = self.get_empty_marginals()
+    self.num_observations = 0
+
+  def get_empty_marginals(self):
+    """Return marginals that have entry 0 for all probabilities."""
+    return Marginals(
+      self.net.nodes_by_index,
+      [[0] * len(node.support) for node in self.net.nodes_by_index]
+    )    
+
+  def observe(self, world):
+    """Update counts from observed random world."""
+    self.num_observations += 1
+    for (index, value) in world.items():
+      self.counts[index][value] += 1
+
+  def marginals(self):
+    """Return normalized marginals."""
+    assert self.num_observations > 0
+    margs = self.get_empty_marginals()
+    for node in self.net.nodes_by_index:
+      for value in node.support:
+        margs[node][value] = self.counts[node][value] / self.num_observations
+    return margs

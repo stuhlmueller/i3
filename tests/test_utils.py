@@ -83,6 +83,14 @@ class TestRandomState(object):
     for i in range(10):
       utils.assert_in_interval(samples_8.count(i), 0.1, num_samples)
 
+  def test_categorical_e(self):
+    num_samples = 100000
+    sample = lambda: self.rng_2.categorical(["A", "B", "C"], [0.1, 0.3, 0.6])
+    samples = [sample() for _ in xrange(num_samples)]
+    utils.assert_in_interval(samples.count("A"), 0.1, num_samples)
+    utils.assert_in_interval(samples.count("B"), 0.3, num_samples)
+    utils.assert_in_interval(samples.count("C"), 0.6, num_samples)    
+
   def test_random_permutation(self):
     """Test shuffle functionality."""
     array_1 = self.rng_1.random_permutation(5)
@@ -104,3 +112,37 @@ class TestRandomState(object):
     samples = [self.rng_1.flip(.3) for _ in xrange(num_samples)]
     utils.assert_in_interval(samples.count(True), 0.3, num_samples)
     utils.assert_in_interval(samples.count(False), 0.7, num_samples)
+
+
+def test_lexicographic_combinations():
+  """Test ordered combinations."""
+  mappings = (
+    ([], [[]]),
+    ([[], [1]], []),
+    ([[1], []], []),
+    ([[1], [2]], [[1, 2]]),
+    ([[1], [2, 3]], [[1, 2], [1, 3]]),
+    ([[1, 3], [2]], [[1, 2], [3, 2]])
+  )
+  for (input, output) in mappings:
+    assert list(utils.lexicographic_combinations(input)) == output
+
+
+def test_is_range():
+  """Check function that tests if a list is a range."""
+  mappings = (
+    ([], 0, True),
+    ([], 1, True),    
+    ([0], 0, True),
+    ([1], 1, True),
+    ([0], 1, False),
+    ([1], 0, False),
+    ([0, 1], 0, True),
+    ([1, 2], 1, True),
+    ([0, 1], 1, False),
+    ([1, 0], 0, False),
+    ([0, 1, 2, 3, 4, 5, 6], 0, True),
+    ([1, 2, 3, 4, 5, 6, 7], 1, True)
+  )  
+  for (input_list, input_start, output) in mappings:
+    assert utils.is_range(input_list, start=input_start) == output
