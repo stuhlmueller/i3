@@ -124,6 +124,50 @@ class DistBayesNetNode(DiscreteBayesNetNode):
     return self.distribution.log_probability(parent_values, node_value)
 
 
+class RealBayesNetNode(BayesNetNode):
+  """Bayes net node with continuous support."""
+
+  def __init__(self, index, name=None, dist_fn=None):
+    super(RealBayesNetNode, self).__init__(index, name=name)
+    self.support = None
+    self.dist_fn = dist_fn
+
+  def get_dist(self, world):
+    parent_values = [world.data[parent.index] for parent in self.parents]
+    return self.dist_fn(parent_values)
+
+  def sample(self, world):
+    """Sample from distribution using parent vals as parameters."""
+    return self.get_dist(world).sample(None)
+
+  def log_probability(self, world, node_value):
+    """Compute log probability of value given parent values."""
+    return self.get_dist(world).log_probability(None, node_value)
+
+
+class DeterministicBayesNetNode(BayesNetNode):
+
+  def __init__(self, index, name=None, function=None, rng=None):
+    super(DeterministicBayesNetNode, self).__init__(index, name=name)
+    self.support = None
+    self.function = function
+    self.rng = rng
+
+  def get_value(self, world):
+    parent_values = [world.data[parent.index] for parent in self.parents]
+    return self.function(parent_values)
+
+  def sample(self, world):
+    return self.get_value(world)
+
+  def log_probability(self, world, node_value):
+    value = self.get_value(world)
+    if value == node_value:
+      return 0.0
+    else:
+      return float('-inf')
+
+
 class TableBayesNetNode(DiscreteBayesNetNode):
   """Bayes net node initialized using CPT."""
 
@@ -273,7 +317,7 @@ class BayesNet(networkx.DiGraph):
     s = "<<BN\n"
     for node in self.nodes_by_topology or self.nodes_by_index:
       s += "  {} -> {}  {}\n".format(
-        node.parents, node, node.domain_size)
+        node.parents, node, node.domain_size if hasattr(node, 'domain_size') else 'R')
     s += ">>"
     return s
 

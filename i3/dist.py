@@ -5,6 +5,11 @@ import collections
 
 from i3 import utils
 
+import numpy as np
+
+from scipy import stats
+import scipy.stats.distributions as dists
+
 
 class Distribution(object):
   """A probability distribution (sampler and scorer)."""
@@ -65,3 +70,37 @@ class CategoricalDistribution(DiscreteDistribution):
   def support(self, params):
     assert not params
     return self.support_values
+
+class ContinuousDistribution(Distribution):
+  pass
+
+class GaussianDistribution(ContinuousDistribution):
+
+  def __init__(self, rng, mean, stdev):
+    self.rng = rng
+    self.mean = mean
+    self.stdev = stdev
+
+  def sample(self, params):
+    assert not params
+    return self.rng.normal(self.mean, self.stdev)
+
+  def log_probability(self, params, value):
+    assert not params
+    return dists.norm.logpdf(value, self.mean, self.stdev)
+
+class GammaDistribution(ContinuousDistribution):
+
+  def __init__(self, rng, shape, scale):
+    self.rng = rng
+    self.shape = shape
+    self.scale = scale
+
+  def sample(self, params):
+    assert not params
+    return self.rng.gamma(self.shape, self.scale)
+
+  def log_probability(self, params, value):
+    assert not params
+    return dists.gamma.logpdf(value, self.shape, self.scale)
+

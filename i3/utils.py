@@ -58,7 +58,7 @@ def significantly_greater(a, b, alpha=0.05):
 
 def assert_in_interval(k, p, n, confidence=.95):
   """Check that observed number of heads is in confidence interval.
-  
+
   Args:
     k: observed count of heads
     p: true probability of heads
@@ -114,6 +114,7 @@ class RandomState(np.random.RandomState):
       array = np.array(obj)
     self.shuffle(array)
     return array
+
 
 
 def lexicographic_combinations(domains):
