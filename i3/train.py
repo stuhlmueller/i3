@@ -1,5 +1,6 @@
 from __future__ import division
 
+from i3 import bayesnet
 from i3 import gibbs
 from i3 import learn
 
@@ -7,7 +8,7 @@ from i3 import learn
 class Trainer(object):
   """Learn distributions for all conditionals in a BayesNetMap."""
 
-  def __init__(self, net, inverse_map, precompute_gibbs):
+  def __init__(self, net, inverse_map, precompute_gibbs, k=50):
     """Extracting all distinct conditionals from inverse map.
 
     Args:
@@ -24,7 +25,10 @@ class Trainer(object):
         parents = node.parents
         parent_indices = tuple([parent.index for parent in parents])
         key = (parent_indices, node.index)
-        if node.children or not precompute_gibbs:
+        if isinstance(node, bayesnet.RealBayesNetNode):
+          learner = self.learners.setdefault(
+            key, learn.KnnGaussianLearner(net.rng, k))
+        elif node.children or not precompute_gibbs:
           learner = self.learners.setdefault(
             key, learn.CountLearner(node.support, net.rng))
         else:
@@ -39,7 +43,7 @@ class Trainer(object):
       parent_values = [world.data[index] for index in parent_indices]
       node_value = world.data[node_index]
       learner.observe(parent_values, node_value)
-  
+
   def finalize(self):
     """Finalize learners, compile network."""
     for learner in self.learners.values():

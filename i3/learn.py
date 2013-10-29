@@ -75,7 +75,7 @@ class LinRegLearner(dist.ContinuousDistribution):
 class KnnGaussianLearner(dist.ContinuousDistribution):
 
   def __init__(self, rng, k):
-    super(LinRegLearner, self).__init__(rng)
+    super(KnnGaussianLearner, self).__init__(rng)
     self.k = k
     self.observations = []
     self.nn = None
@@ -86,18 +86,23 @@ class KnnGaussianLearner(dist.ContinuousDistribution):
 
   def finalize(self):
     if self.nn is None:
-        xs = [x for (x, _) in self.observations if x]
-        if not xs:
-            return [], []
-        self.nn = NearestNeighbors()
-        self.nn.fit(xs)
+      if not self.observations:
+        raise Exception('no observations')
+      if not self.observations[0][0]:
+        # 0-length vectors are not allowed
+        xs = [[0] for _ in self.observations]
+      else:
+        xs = [x for (x, _) in self.observations]
+      self.nn = NearestNeighbors()
+      self.nn.fit(xs)
 
   def get_knns(self, params):
+    self.finalize()
     distance_array, index_array = self.nn.kneighbors(
-            params, min(self.k, len(self.pairs)), return_distance=True)
+            params, min(self.k, len(self.observations)), return_distance=True)
     distances = list(distance_array[0])
     indices = list(index_array[0])
-    elements = [self.pairs[i] for i in indices]
+    elements = [self.observations[i][1] for i in indices]
     return elements, distances
 
   def get_density_estimator(self, params):

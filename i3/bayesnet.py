@@ -127,29 +127,39 @@ class DistBayesNetNode(DiscreteBayesNetNode):
 class RealBayesNetNode(BayesNetNode):
   """Bayes net node with continuous support."""
 
-  def __init__(self, index, name=None, dist_fn=None):
+  def __init__(self, index, name=None):
     super(RealBayesNetNode, self).__init__(index, name=name)
-    self.support = None
-    self.dist_fn = dist_fn
+    self.support = 'R'
+    self.domain_size = 'R'
 
-  def get_dist(self, world):
-    parent_values = [world.data[parent.index] for parent in self.parents]
-    return self.dist_fn(parent_values)
+
+class DistRealBayesNetNode(RealBayesNetNode):
+
+  def __init__(self, index, name=None, distribution=None):
+    super(DistRealBayesNetNode, self).__init__(index, name=name)
+    self.distribution = None
+    if distribution:
+      self.set_distribution(distribution)
+
+  def set_distribution(self, distribution):
+    """Set distribution used for sampling and scoring."""
+    self.distribution = distribution
 
   def sample(self, world):
     """Sample from distribution using parent vals as parameters."""
-    return self.get_dist(world).sample(None)
+    parent_values = [world.data[parent.index] for parent in self.parents]
+    return self.distribution.sample(parent_values)
 
   def log_probability(self, world, node_value):
     """Compute log probability of value given parent values."""
-    return self.get_dist(world).log_probability(None, node_value)
+    parent_values = [world.data[parent.index] for parent in self.parents]
+    return self.distribution.log_probability(parent_values, node_value)
 
 
-class DeterministicBayesNetNode(BayesNetNode):
+class DeterministicRealBayesNetNode(RealBayesNetNode):
 
   def __init__(self, index, name=None, function=None, rng=None):
-    super(DeterministicBayesNetNode, self).__init__(index, name=name)
-    self.support = None
+    super(DeterministicRealBayesNetNode, self).__init__(index, name=name)
     self.function = function
     self.rng = rng
 

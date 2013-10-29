@@ -62,7 +62,6 @@ def distance_scorer(net, start_nodes):
 
   return scorer
 
-
 def compute_inverse_net(net, start_nodes, end_node, rng, max_inverse_size):
   """Compute a single Bayes net inverse given start and end nodes.
 
@@ -74,7 +73,7 @@ def compute_inverse_net(net, start_nodes, end_node, rng, max_inverse_size):
     max_inverse_size: going topologically backwards from end node,
       only include up to this number of nodes in computed inverse
       edges
-            
+
   Returns:
     inverse_net: a BayesNet with the same number of nodes as input net
   """
@@ -94,18 +93,23 @@ def compute_inverse_net(net, start_nodes, end_node, rng, max_inverse_size):
   sorted_pairs = sorted(scored_indices, key=lambda (i, s): -s)
   sorted_indices = [index for (index, _) in sorted_pairs]
 
+  def node_to_inverse(node):
+    if isinstance(node, bayesnet.DiscreteBayesNetNode):
+      return bayesnet.DistBayesNetNode(
+          node.index, name=node.name, domain_size=node.domain_size)
+    if isinstance(node, bayesnet.RealBayesNetNode):
+      return bayesnet.DistRealBayesNetNode(node.index, name=node.name)
+    raise Exception("Unknown node type %s" % type(node))
+
   # Create inverse net with nodes, no edges.
-  inverse_nodes = [
-    bayesnet.DistBayesNetNode(
-      node.index, name=node.name, domain_size=node.domain_size)
-    for node in net.nodes_by_index]
+  inverse_nodes = [node_to_inverse(node) for node in net.nodes_by_index]
   inverse_net = bayesnet.BayesNet(rng, nodes=inverse_nodes)
 
   # Add edges to inverse network.
 
   # Start nodes will not have any incoming edges.  We keep track of a
   # set of "observed nodes", which is the set of nodes that we have
-  # already added to the network (with incoming edges).  
+  # already added to the network (with incoming edges).
   observed_nodes = set(start_nodes)
 
   # Go through node indices, starting with nodes that are close to the
@@ -152,7 +156,7 @@ def compute_inverse_map(net, evidence_nodes, rng, max_inverse_size=None):
     max_inverse_size: going topologically backwards from end node,
       only include up to this number of nodes in computed inverse
       edges
-  
+
   Returns:
     inverse_map: a BayesNetMap that maps ("final") nodes in the
       forward network to inverse networks

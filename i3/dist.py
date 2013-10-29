@@ -25,6 +25,20 @@ class Distribution(object):
     """Get the log probability of a value."""
     raise NotImplementedError("probability")
 
+class FunctionDistribution(Distribution):
+  """A conditional distribution formed by calling a function on the parameters
+     to produce the conditional distribution."""
+
+  def __init__(self, rng, function):
+    super(FunctionDistribution, self).__init__(rng)
+    self.function = function
+
+  def sample(self, params):
+    return self.function(params).sample(None)
+
+  def log_probability(self, params, value):
+    return self.function(params).log_probability(None, value)
+
 
 class DiscreteDistribution(Distribution):
   """A discrete probability distribution (sampler, scorer, and support)."""
@@ -103,4 +117,5 @@ class GammaDistribution(ContinuousDistribution):
   def log_probability(self, params, value):
     assert not params
     return dists.gamma.logpdf(value, self.shape, self.scale)
+
 
