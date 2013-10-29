@@ -1,0 +1,8 @@
+model in model.bug
+data in data.data
+compile
+initialize
+update 1000
+monitor refl
+update 10000
+coda *

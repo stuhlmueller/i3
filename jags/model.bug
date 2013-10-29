@@ -1,0 +1,6 @@
+model {
+refl ~ dnorm(1, 1);
+ill1 ~ dgamma(9, 0.5^-1);
+ill2 ~ dnorm(1, 0.5^-2);
+obs ~ dnorm(refl * (ill1 + ill2), 2^-2);
+}

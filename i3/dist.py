@@ -112,10 +112,10 @@ class GammaDistribution(ContinuousDistribution):
 
   def sample(self, params):
     assert not params
-    return self.rng.gamma(self.shape, self.scale)
+    return self.rng.gamma(self.shape, scale=self.scale)
 
   def log_probability(self, params, value):
     assert not params
-    return dists.gamma.logpdf(value, self.shape, self.scale)
+    return dists.gamma.logpdf(value, self.shape, scale=self.scale)
 
 
