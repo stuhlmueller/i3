@@ -1,6 +1,7 @@
 """Utilities for stochastic sampling and probability calculations."""
 from __future__ import division
 
+import datetime
 import math
 import numpy as np
 from scipy import stats
@@ -159,5 +160,17 @@ def is_range(xs, start=0):
       return False
     i += 1
   return True
-  
-  
+
+
+class TemporalIntegrator(object):
+
+  def __init__(self):
+    self.last_time = datetime.datetime.now()
+    self.finalized = False
+    self.integral = 0
+
+  def observe(self, value):
+    now = datetime.datetime.now()
+    elapsed_seconds = (now - self.last_time).total_seconds()
+    self.integral += value * elapsed_seconds
+    self.last_time = now
