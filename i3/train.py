@@ -7,7 +7,7 @@ from i3 import learn
 class Trainer(object):
   """Learn distributions for all conditionals in a BayesNetMap."""
 
-  def __init__(self, net, inverse_map, precompute_gibbs):
+  def __init__(self, net, inverse_map, precompute_gibbs, learner_class=None):
     """Extracting all distinct conditionals from inverse map.
 
     Args:
@@ -15,10 +15,13 @@ class Trainer(object):
       inverse_map: a BayesNetMap with inverses for the Bayes net
       precompute_gibbs: a Boolean indicating whether to do exact
         computation of Gibbs conditinoals during initialization.
+      learner_class: a learnable distribution as defined in i3.learn
     """
     self.net = net
     self.learners = {}
     self.inverse_map = inverse_map
+    if learner_class is None:
+      learner_class = learn.CountLearner
     for inverse_net in inverse_map.values():
       for node in inverse_net.nodes_by_index:
         parents = node.parents
@@ -26,7 +29,7 @@ class Trainer(object):
         key = (parent_indices, node.index)
         if node.children or not precompute_gibbs:
           learner = self.learners.setdefault(
-            key, learn.CountLearner(node.support, net.rng))
+            key, learner_class(node.support, net.rng))
         else:
           forward_node = net.nodes_by_index[node.index]
           learner = self.learners.setdefault(
