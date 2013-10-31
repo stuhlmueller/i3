@@ -5,6 +5,7 @@ import networkx
 
 from i3 import dist
 from i3 import random_world
+from i3 import utils
 
 
 class BayesNetNode(object):
@@ -122,6 +123,60 @@ class DistBayesNetNode(DiscreteBayesNetNode):
     """Compute log probability of value given parent values."""
     parent_values = [world.data[parent.index] for parent in self.parents]
     return self.distribution.log_probability(parent_values, node_value)
+
+
+class RealBayesNetNode(BayesNetNode):
+  """Bayes net node with continuous support."""
+
+  def __init__(self, index, name=None):
+    super(RealBayesNetNode, self).__init__(index, name=name)
+    self.support = 'R'
+    self.domain_size = 'R'
+
+
+class DistRealBayesNetNode(RealBayesNetNode):
+
+  def __init__(self, index, name=None, distribution=None):
+    super(DistRealBayesNetNode, self).__init__(index, name=name)
+    self.distribution = None
+    if distribution:
+      self.set_distribution(distribution)
+
+  def set_distribution(self, distribution):
+    """Set distribution used for sampling and scoring."""
+    self.distribution = distribution
+
+  def sample(self, world):
+    """Sample from distribution using parent vals as parameters."""
+    parent_values = [world.data[parent.index] for parent in self.parents]
+    return self.distribution.sample(parent_values)
+
+  def log_probability(self, world, node_value):
+    """Compute log probability of value given parent values."""
+    parent_values = [world.data[parent.index] for parent in self.parents]
+    return self.distribution.log_probability(parent_values, node_value)
+
+
+class DeterministicRealBayesNetNode(RealBayesNetNode):
+
+  def __init__(self, index, name=None, function=None, rng=None):
+    super(DeterministicRealBayesNetNode, self).__init__(index, name=name)
+    self.function = function
+    self.rng = rng
+
+  def get_value(self, world):
+    parent_values = [world.data[parent.index] for parent in self.parents]
+    return self.function(parent_values)
+
+  def sample(self, world):
+    return self.get_value(world)
+
+  def log_probability(self, world, node_value):
+    value = self.get_value(world)
+    if value == node_value:
+      return 0.0
+    else:
+      return utils.LOG_PROB_0
 
 
 class TableBayesNetNode(DiscreteBayesNetNode):
@@ -273,7 +328,7 @@ class BayesNet(networkx.DiGraph):
     s = "<<BN\n"
     for node in self.nodes_by_topology or self.nodes_by_index:
       s += "  {} -> {}  {}\n".format(
-        node.parents, node, node.domain_size)
+        node.parents, node, node.domain_size if hasattr(node, 'domain_size') else 'R')
     s += ">>"
     return s
 

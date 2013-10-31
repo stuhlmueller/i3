@@ -3,12 +3,14 @@ from __future__ import division
 import collections
 import itertools
 import math
-import numpy
-from sklearn import linear_model
 
 from i3 import dist
 from i3 import gibbs
 from i3 import utils
+
+from scipy import stats
+from sklearn import linear_model
+from sklearn.neighbors import NearestNeighbors
 
 
 class CountLearner(dist.DiscreteDistribution):
@@ -45,6 +47,82 @@ class CountLearner(dist.DiscreteDistribution):
     pass
 
 
+class LinRegLearner(dist.ContinuousDistribution):
+
+  def __init__(self, rng):
+    super(LinRegLearner, self).__init__(rng)
+    self.observations = []
+    self.learner = None
+
+  def observe(self, params, value):
+    self.observations.append((params, value))
+    self.learner = None
+
+  def finalize(self):
+    if self.learner is None:
+      self.learner = linear_model.LinearRegression()
+      xs = [o[0] for o in self.observations]
+      ys = [o[1] for o in self.observations]
+      self.learner.fit(xs, ys)
+
+  def sample(self, params):
+    # TODO track error variance
+    return self.learner.predict(params)
+
+  def log_probability(self, params, value):
+    # TODO track error variance
+    pred = self.learner.predict(params)
+    return -(pred-value)**2
+
+
+class KnnGaussianLearner(dist.ContinuousDistribution):
+
+  def __init__(self, rng, k):
+    super(KnnGaussianLearner, self).__init__(rng)
+    self.k = k
+    self.observations = []
+    self.nn = None
+
+  def observe(self, params, value):
+    self.observations.append((params, value))
+    self.nn = None
+
+  def finalize(self):
+    if self.nn is None:
+      if not self.observations:
+        raise Exception('no observations')
+      if not self.observations[0][0]:
+        # 0-length vectors are not allowed
+        xs = [[0] for _ in self.observations]
+      else:
+        xs = [x for (x, _) in self.observations]
+      self.nn = NearestNeighbors()
+      self.nn.fit(xs)
+
+  def get_knns(self, params):
+    self.finalize()
+    distance_array, index_array = self.nn.kneighbors(
+            params, min(self.k, len(self.observations)), return_distance=True)
+    distances = list(distance_array[0])
+    indices = list(index_array[0])
+    elements = [self.observations[i][1] for i in indices]
+    return elements, distances
+
+  def get_density_estimator(self, params):
+    (knns, dists) = self.get_knns(params)
+    return stats.gaussian_kde(knns)
+
+  def sample(self, params):
+    kde = self.get_density_estimator(params)
+    return kde.resample(size=1)[0][0]
+
+  def log_probability(self, params, value):
+    kde = self.get_density_estimator(params)
+    p = kde.evaluate(value)
+    assert p != 0.0
+    return math.log(p)
+
+
 class GibbsLearner(dist.DiscreteDistribution):
   """Learn a family of distributions by exact computation of conditionals."""
 
@@ -76,7 +154,7 @@ square_transformer = lambda xs: [xi*xj for xi in xs for xj in xs]
 
 class LogisticRegressionLearner(dist.DiscreteDistribution):
   """Learn a family of distributions using (batch) logistic regression."""
-  
+
   def __init__(self, support, rng, transform_inputs=None):
     super(LogisticRegressionLearner, self).__init__(rng)
     self.predictor = linear_model.LogisticRegression(penalty="l2")

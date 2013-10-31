@@ -5,7 +5,7 @@ import os
 def upload_data():
   """Upload data to picloud buckets."""
   local_data_path = os.path.join(os.path.dirname(__file__), "../data/")
-  for root, dir, files in os.walk(local_data_path):
+  for root, _, files in os.walk(local_data_path):
     for file in files:
       if not file.startswith("."):
         source_file = os.path.join(root, file)

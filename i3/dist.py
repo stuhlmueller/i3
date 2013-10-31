@@ -2,6 +2,7 @@
 from __future__ import division
 
 import collections
+import scipy.stats.distributions as dists
 
 from i3 import utils
 
@@ -19,6 +20,21 @@ class Distribution(object):
   def log_probability(self, params, value):
     """Get the log probability of a value."""
     raise NotImplementedError("probability")
+
+
+class FunctionDistribution(Distribution):
+  """A conditional distribution formed by calling a function on the parameters
+     to produce the conditional distribution."""
+
+  def __init__(self, rng, function):
+    super(FunctionDistribution, self).__init__(rng)
+    self.function = function
+
+  def sample(self, params):
+    return self.function(params).sample(None)
+
+  def log_probability(self, params, value):
+    return self.function(params).log_probability(None, value)
 
 
 class DiscreteDistribution(Distribution):
@@ -65,3 +81,41 @@ class CategoricalDistribution(DiscreteDistribution):
   def support(self, params):
     assert not params
     return self.support_values
+
+
+class ContinuousDistribution(Distribution):
+  pass
+
+
+class GaussianDistribution(ContinuousDistribution):
+
+  def __init__(self, rng, mean, stdev):
+    super(GaussianDistribution, self).__init__(rng)
+    self.mean = mean
+    self.stdev = stdev
+
+  def sample(self, params):
+    assert not params
+    return self.rng.normal(self.mean, self.stdev)
+
+  def log_probability(self, params, value):
+    assert not params
+    return dists.norm.logpdf(value, self.mean, self.stdev)
+
+
+class GammaDistribution(ContinuousDistribution):
+
+  def __init__(self, rng, shape, scale):
+    super(GammaDistribution, self).__init__(rng)
+    self.shape = shape
+    self.scale = scale
+
+  def sample(self, params):
+    assert not params
+    return self.rng.gamma(self.shape, scale=self.scale)
+
+  def log_probability(self, params, value):
+    assert not params
+    return dists.gamma.logpdf(value, self.shape, scale=self.scale)
+
+
