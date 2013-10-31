@@ -2,3 +2,6 @@
 .DS_Store
 .coverage
 .idea
+data/evidence/uai/*
+data/networks/uai/*
+data/marginals/uai/*
