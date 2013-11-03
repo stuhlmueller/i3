@@ -81,14 +81,15 @@ def test_gibbs_learner():
 
 input_transformers = [learn.identity_transformer, learn.square_transformer]
 
+@pytest.mark.parametrize("transform_inputs", input_transformers)
 class TestLogisticRegressionLearner(object):
 
-  @pytest.mark.parametrize("transform_inputs", input_transformers)
+  def setup(self):
+    self.rng = utils.RandomState(seed=0)    
+
   def test_learner(self, transform_inputs):
     """Test learner on its own."""
-    rng = utils.RandomState(seed=0)
-    learner = learn.LogisticRegressionLearner(
-      [0, 1], rng, transform_inputs=transform_inputs)
+    learner = learn.LogisticRegressionLearner(self.rng, transform_inputs)
     training_data = [
       ((0, 0, 0), 0),
       ((0, 0, 1), 1),
@@ -99,43 +100,53 @@ class TestLogisticRegressionLearner(object):
       ((0, 1, 0), 1),
       ((1, 0, 0), 0)
     ]
-    for (inputs, output) in training_data:
+    for inputs, output in training_data:
       learner.observe(inputs, output)
     learner.finalize()
     score = learner.log_probability
     assert score((0, 1, 1), 0) < score((0, 1, 1), 1)
     assert score((1, 1, 0), 0) > score((1, 1, 0), 1)
 
-  @pytest.mark.parametrize("transform_inputs", input_transformers)
   def test_learner_accuracy(self, transform_inputs):
     """Test that learner gets relative probabilities right"""
-    rng = utils.RandomState(seed=0)
-    learner = learn.LogisticRegressionLearner(
-      [0, 1], rng, transform_inputs=transform_inputs)
+    learner = learn.LogisticRegressionLearner(self.rng, transform_inputs)
     training_data = [0] * 666 + [1] * 333
+    self.rng.shuffle(training_data)
     for datum in training_data:
       learner.observe((), datum)
     learner.finalize()
-    print math.exp(learner.log_probability((), 0))
-    print math.exp(learner.log_probability((), 1))
-    assert math.log(0.656) < learner.log_probability((), 0) < math.log(0.676)
-    assert math.log(0.323) < learner.log_probability((), 1) < math.log(0.343)
+    assert math.log(0.65) < learner.log_probability((), 0) < math.log(0.68)
+    assert math.log(0.32) < learner.log_probability((), 1) < math.log(0.35)
 
-  @pytest.mark.parametrize("transform_inputs", input_transformers)    
   def test_predict_proba(self, transform_inputs):
     """Test incomplete label data"""
-    rng = utils.RandomState(seed=0)
-    learner = learn.LogisticRegressionLearner(
-      [0, 1, 2], rng, transform_inputs=transform_inputs)    
+    learner = learn.LogisticRegressionLearner(self.rng, transform_inputs)
     training_data = [
       ((0, 0, 0), 0),
       ((1, 0, 0), 0),
       ((1, 1, 1), 1)
     ]
-    for (inputs, output) in training_data:
+    for inputs, output in training_data:
       learner.observe(inputs, output)
     learner.finalize()
     score = learner.log_probability
     assert score((0, 0, 0), 0) > score((0, 0, 0), 1)
     assert score((1, 0, 0), 0) > score((1, 0, 0), 1)
     assert score((1, 1, 1), 1) > score((1, 1, 1), 0)    
+
+  @pytest.mark.parametrize("k", [1, 5, 10, 30, 50, 70, 90, 95, 99])      
+  def test_online_lr_consistency(self, k, transform_inputs):
+    learner = learn.LogisticRegressionLearner(
+      self.rng, transform_inputs=transform_inputs)  
+    for i in range(500):
+      for _ in xrange(k):
+        learner.observe((), 1)
+      for _ in xrange(100-k):
+        learner.observe((), 0)
+    p_on = math.exp(learner.log_probability((), 1))
+    p_off = math.exp(learner.log_probability((), 0))
+    p_true = k / 100
+    margin = .02
+    assert p_true - margin < p_on < p_true + margin
+    assert 1 - p_true - margin < p_off < 1 - p_true + margin    
+

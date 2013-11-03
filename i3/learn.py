@@ -1,7 +1,6 @@
 from __future__ import division
 
 import collections
-import itertools
 import math
 
 from i3 import dist
@@ -10,7 +9,7 @@ from i3 import utils
 
 from scipy import stats
 from sklearn import linear_model
-from sklearn.neighbors import NearestNeighbors
+from sklearn import neighbors
 
 
 class CountLearner(dist.DiscreteDistribution):
@@ -72,7 +71,7 @@ class LinRegLearner(dist.ContinuousDistribution):
   def log_probability(self, params, value):
     # TODO track error variance
     pred = self.learner.predict(params)
-    return -(pred-value)**2
+    return -(pred - value) ** 2
 
 
 class KnnGaussianLearner(dist.ContinuousDistribution):
@@ -96,13 +95,13 @@ class KnnGaussianLearner(dist.ContinuousDistribution):
         xs = [[0] for _ in self.observations]
       else:
         xs = [x for (x, _) in self.observations]
-      self.nn = NearestNeighbors()
+      self.nn = neighbors.NearestNeighbors()
       self.nn.fit(xs)
 
   def get_knns(self, params):
     self.finalize()
     distance_array, index_array = self.nn.kneighbors(
-            params, min(self.k, len(self.observations)), return_distance=True)
+      params, min(self.k, len(self.observations)), return_distance=True)
     distances = list(distance_array[0])
     indices = list(index_array[0])
     elements = [self.observations[i][1] for i in indices]
@@ -149,61 +148,56 @@ class GibbsLearner(dist.DiscreteDistribution):
 
 identity_transformer = lambda xs: xs
 
-square_transformer = lambda xs: [xi*xj for xi in xs for xj in xs]
+square_transformer = lambda xs: tuple([xi * xj for xi in xs for xj in xs])
 
 
 class LogisticRegressionLearner(dist.DiscreteDistribution):
-  """Learn a family of distributions using (batch) logistic regression."""
-
-  def __init__(self, support, rng, transform_inputs=None):
+  # Only binary values supported for now.
+  
+  def __init__(self, rng, transform_inputs=None):
     super(LogisticRegressionLearner, self).__init__(rng)
-    self.predictor = linear_model.LogisticRegression(penalty="l2")
-    self.inputs = []
-    self.outputs = []
-    self._support = support
-    assert utils.is_range(self._support)    
+    self.weights = None
+    self.rate = 1.0
+    self.n = 1
     if transform_inputs is None:
-      self.transform_inputs = identity_transformer
+      self.transformer = identity_transformer
     else:
-      self.transform_inputs = transform_inputs
-    self.classes_trained = None
-    self.classes_not_trained = None    
+      self.transformer = transform_inputs
+
+  def params_to_inputs(self, params):
+    return self.transformer(params) + (1,)
+
+  def probability(self, inputs, value):
+    logit = sum(theta_i * x_i for (theta_i, x_i) in zip(self.weights, inputs))
+    p_on = 1.0 / (1.0 + math.exp(-logit))
+    return value * p_on + (1 - value) * (1 - p_on)
 
   def log_probability(self, params, value):
-    inputs = self.transform_inputs(params)
-    probs = self.predict_probabilities(inputs)
-    prob = probs[value]
-    return utils.safe_log(prob)
+    assert value in (0, 1)
+    inputs = self.params_to_inputs(params)
+    assert len(inputs) == len(self.weights)
+    return math.log(self.probability(inputs, value))
 
   def observe(self, params, value):
-    inputs = self.transform_inputs(params)
-    self.inputs.append(inputs)
-    self.outputs.append(value)
-
+    assert value in (0, 1)
+    inputs = self.params_to_inputs(params)    
+    if self.weights is None:
+      self.weights = [0.0] * len(inputs)
+    else:
+      assert len(self.weights) == len(inputs)
+    p_on = self.probability(inputs, 1)
+    for i, weight in enumerate(self.weights):
+      self.weights[i] += (self.rate / math.sqrt(self.n)) * (value - p_on) * inputs[i]
+    self.n += 1
+  
   def sample(self, params):
-    inputs = self.transform_inputs(params)    
-    probs = self.predict_probabilities(inputs)
-    return self.rng.categorical(self._support, probs)
+    inputs = self.params_to_inputs(params)
+    assert len(inputs) == len(self.weights)    
+    p_on = self.probability(inputs, 1)
+    return 1 if self.rng.flip(p_on) else 0
 
   def support(self, params):
-    return self._support
+    return [0, 1]
 
   def finalize(self):
-    self.predictor.fit(self.inputs, self.outputs)
-    self.inputs = []
-    self.outputs = []    
-    try:
-      self.classes_trained = self.predictor.classes_
-    except AttributeError:
-      # For older versions of sklearn.
-      self.classes_trained = self.predictor.label_
-    self.classes_not_trained = set(
-      self.classes_trained).symmetric_difference(self._support)
-    
-  def predict_probabilities(self, inputs):
-    # Wrapper around sklearn predict_proba that adds all classes
-    probs = self.predictor.predict_proba(inputs)[0]
-    prob_per_class = (zip(self.classes_trained, probs) +
-                      zip(self.classes_not_trained, itertools.repeat(0.)))
-    prob_per_class = sorted(prob_per_class)
-    return [i[1] for i in prob_per_class]
+    pass
