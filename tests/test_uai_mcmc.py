@@ -1,7 +1,6 @@
 """Test MCMC on imported UAI networks."""
 from __future__ import division
 
-import cloud
 import cProfile
 import datetime
 import pytest

@@ -5,6 +5,7 @@ import networkx
 
 from i3 import dist
 from i3 import random_world
+from i3 import utils
 
 
 class BayesNetNode(object):
@@ -175,7 +176,7 @@ class DeterministicRealBayesNetNode(RealBayesNetNode):
     if value == node_value:
       return 0.0
     else:
-      return float('-inf')
+      return utils.LOG_PROB_0
 
 
 class TableBayesNetNode(DiscreteBayesNetNode):

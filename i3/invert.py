@@ -62,6 +62,7 @@ def distance_scorer(net, start_nodes):
 
   return scorer
 
+
 def compute_inverse_net(net, start_nodes, end_node, rng, max_inverse_size):
   """Compute a single Bayes net inverse given start and end nodes.
 

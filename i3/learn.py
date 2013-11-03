@@ -1,8 +1,8 @@
 from __future__ import division
 
 import collections
+import itertools
 import math
-from sklearn import linear_model
 
 from i3 import dist
 from i3 import gibbs
@@ -46,6 +46,7 @@ class CountLearner(dist.DiscreteDistribution):
     """No compilation step necessary."""
     pass
 
+
 class LinRegLearner(dist.ContinuousDistribution):
 
   def __init__(self, rng):
@@ -60,7 +61,9 @@ class LinRegLearner(dist.ContinuousDistribution):
   def finalize(self):
     if self.learner is None:
       self.learner = linear_model.LinearRegression()
-      self.learner.fit([o[0] for o in observations], [o[1] for o in observations])
+      xs = [o[0] for o in self.observations]
+      ys = [o[1] for o in self.observations]
+      self.learner.fit(xs, ys)
 
   def sample(self, params):
     # TODO track error variance
@@ -148,6 +151,7 @@ identity_transformer = lambda xs: xs
 
 square_transformer = lambda xs: [xi*xj for xi in xs for xj in xs]
 
+
 class LogisticRegressionLearner(dist.DiscreteDistribution):
   """Learn a family of distributions using (batch) logistic regression."""
 
@@ -157,15 +161,19 @@ class LogisticRegressionLearner(dist.DiscreteDistribution):
     self.inputs = []
     self.outputs = []
     self._support = support
+    assert utils.is_range(self._support)    
     if transform_inputs is None:
       self.transform_inputs = identity_transformer
     else:
       self.transform_inputs = transform_inputs
+    self.classes_trained = None
+    self.classes_not_trained = None    
 
   def log_probability(self, params, value):
     inputs = self.transform_inputs(params)
-    probs = self.predictor.predict_proba(inputs)[0]
-    return probs[value]
+    probs = self.predict_probabilities(inputs)
+    prob = probs[value]
+    return utils.safe_log(prob)
 
   def observe(self, params, value):
     inputs = self.transform_inputs(params)
@@ -173,8 +181,8 @@ class LogisticRegressionLearner(dist.DiscreteDistribution):
     self.outputs.append(value)
 
   def sample(self, params):
-    inputs = self.transform_inputs(params)
-    probs = self.predictor.predict_proba(inputs)[0]
+    inputs = self.transform_inputs(params)    
+    probs = self.predict_probabilities(inputs)
     return self.rng.categorical(self._support, probs)
 
   def support(self, params):
@@ -183,6 +191,19 @@ class LogisticRegressionLearner(dist.DiscreteDistribution):
   def finalize(self):
     self.predictor.fit(self.inputs, self.outputs)
     self.inputs = []
-    self.outputs = []
-    assert list(self.predictor.classes_) == self._support
-    assert utils.is_range(self._support)
+    self.outputs = []    
+    try:
+      self.classes_trained = self.predictor.classes_
+    except AttributeError:
+      # For older versions of sklearn.
+      self.classes_trained = self.predictor.label_
+    self.classes_not_trained = set(
+      self.classes_trained).symmetric_difference(self._support)
+    
+  def predict_probabilities(self, inputs):
+    # Wrapper around sklearn predict_proba that adds all classes
+    probs = self.predictor.predict_proba(inputs)[0]
+    prob_per_class = (zip(self.classes_trained, probs) +
+                      zip(self.classes_not_trained, itertools.repeat(0.)))
+    prob_per_class = sorted(prob_per_class)
+    return [i[1] for i in prob_per_class]

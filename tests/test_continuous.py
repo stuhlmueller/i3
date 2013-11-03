@@ -1,10 +1,8 @@
-
 from i3 import bayesnet
 from i3 import dist
 from i3 import evid
 from i3 import invert
 from i3 import mcmc
-from i3 import random_world
 from i3 import train
 from i3 import utils
 

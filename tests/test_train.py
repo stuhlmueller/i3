@@ -85,7 +85,7 @@ class TestUAIBayesNet(object):
 
   def train_from_gibbs(self, trainers, num_samples, world):
     gibbs_sampler = mcmc.GibbsChain(
-      self.net, self.rng, random_world.RandomWorld())
+      self.net, self.rng, world)
     gibbs_sampler.initialize_state()
     for _ in xrange(num_samples):
       gibbs_sampler.transition()
@@ -135,7 +135,7 @@ class TestUAIBayesNet(object):
     # distributions are close to true distributions.
     print "Comparing distributions..."
     error = 0.0
-    N = 0
+    num_checks = 0
     for node in inverse_map_with_gibbs.keys():
       net_with_gibbs = inverse_map_with_gibbs.get_net(node)
       net_without_gibbs = inverse_map_without_gibbs.get_net(node)
@@ -149,7 +149,7 @@ class TestUAIBayesNet(object):
           estimated_value = math.exp(
             estimated_dist.log_probability(markov_blanket_values, value))
           error += abs(true_value - estimated_value)
-          N += 1
-    average_error = error / N
+          num_checks += 1
+    average_error = error / num_checks
     print average_error
     assert average_error < .05

@@ -116,5 +116,26 @@ class TestLogisticRegressionLearner(object):
     for datum in training_data:
       learner.observe((), datum)
     learner.finalize()
-    assert 0.656 < learner.log_probability((), 0) < 0.676
-    assert 0.323 < learner.log_probability((), 1) < 0.343
+    print math.exp(learner.log_probability((), 0))
+    print math.exp(learner.log_probability((), 1))
+    assert math.log(0.656) < learner.log_probability((), 0) < math.log(0.676)
+    assert math.log(0.323) < learner.log_probability((), 1) < math.log(0.343)
+
+  @pytest.mark.parametrize("transform_inputs", input_transformers)    
+  def test_predict_proba(self, transform_inputs):
+    """Test incomplete label data"""
+    rng = utils.RandomState(seed=0)
+    learner = learn.LogisticRegressionLearner(
+      [0, 1, 2], rng, transform_inputs=transform_inputs)    
+    training_data = [
+      ((0, 0, 0), 0),
+      ((1, 0, 0), 0),
+      ((1, 1, 1), 1)
+    ]
+    for (inputs, output) in training_data:
+      learner.observe(inputs, output)
+    learner.finalize()
+    score = learner.log_probability
+    assert score((0, 0, 0), 0) > score((0, 0, 0), 1)
+    assert score((1, 0, 0), 0) > score((1, 0, 0), 1)
+    assert score((1, 1, 1), 1) > score((1, 1, 1), 0)    

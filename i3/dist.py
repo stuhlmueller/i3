@@ -2,13 +2,9 @@
 from __future__ import division
 
 import collections
+import scipy.stats.distributions as dists
 
 from i3 import utils
-
-import numpy as np
-
-from scipy import stats
-import scipy.stats.distributions as dists
 
 
 class Distribution(object):
@@ -24,6 +20,7 @@ class Distribution(object):
   def log_probability(self, params, value):
     """Get the log probability of a value."""
     raise NotImplementedError("probability")
+
 
 class FunctionDistribution(Distribution):
   """A conditional distribution formed by calling a function on the parameters
@@ -85,13 +82,15 @@ class CategoricalDistribution(DiscreteDistribution):
     assert not params
     return self.support_values
 
+
 class ContinuousDistribution(Distribution):
   pass
+
 
 class GaussianDistribution(ContinuousDistribution):
 
   def __init__(self, rng, mean, stdev):
-    self.rng = rng
+    super(GaussianDistribution, self).__init__(rng)
     self.mean = mean
     self.stdev = stdev
 
@@ -103,10 +102,11 @@ class GaussianDistribution(ContinuousDistribution):
     assert not params
     return dists.norm.logpdf(value, self.mean, self.stdev)
 
+
 class GammaDistribution(ContinuousDistribution):
 
   def __init__(self, rng, shape, scale):
-    self.rng = rng
+    super(GammaDistribution, self).__init__(rng)
     self.shape = shape
     self.scale = scale
 
