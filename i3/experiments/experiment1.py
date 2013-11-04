@@ -1,3 +1,4 @@
+# For triangle network, check dependence of performance on parameter settings.
 from __future__ import division
 
 import datetime
