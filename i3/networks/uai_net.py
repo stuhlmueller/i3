@@ -24,9 +24,9 @@ def names(max_net_size):
       yield filename
 
 
-def get(rng, name):
+def get(rng, name, epsilon=0.0):
   filename = os.path.join(network_path(), name)
-  net = uai_import.load_network(filename, rng)
+  net = uai_import.load_network(filename, rng, epsilon=epsilon)
   return net
 
 
@@ -37,7 +37,8 @@ def evidence(name):
   return evidence
 
 
-def marginals(name):
+def marginals(name, epsilon=0.0):
+  assert epsilon == 0.0
   marginals_path = os.path.join(data_path(), "marginals/uai/")
   true_filename = os.path.join(marginals_path, "{}.true.mar".format(name))
   approx_filename = os.path.join(marginals_path, "{}.approx.mar".format(name))

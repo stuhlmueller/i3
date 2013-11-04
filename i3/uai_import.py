@@ -186,7 +186,7 @@ def reorder_cpt(old_order, old_domain_sizes, old_probs, new_order):
   return new_probs
 
 
-def network_eval(stack, rng):
+def network_eval(stack, rng, epsilon=0.0):
   """Turn random state and stack of (UAI) net numbers into Bayesian network."""
 
   net = bayesnet.BayesNet(rng=rng)
@@ -215,8 +215,12 @@ def network_eval(stack, rng):
   for node in net.nodes_by_index:
     cpt_size = stack.popleft()
     cpt_probabilities = utils.pop_n(stack, cpt_size)
-    for cpt_prob in cpt_probabilities:
+    for j, cpt_prob in enumerate(cpt_probabilities):
       assert 0 <= cpt_prob <= 1
+      if cpt_prob > 1.0 - epsilon:
+        cpt_probabilities[j] = 1.0 - epsilon
+      if cpt_prob < epsilon:
+        cpt_probabilities[j] = epsilon
     old_domain_sizes = [net.nodes_by_index[i].domain_size
                         for i in clique_order[node]]
     parent_indices = sorted([i for i in clique_order[node] if i != node.index])
@@ -260,10 +264,13 @@ def marginal_eval(stack):
 def make_string_evaluator(token_parser, stack_evaluator):
   """Return composition of token parser and stack evaluator."""
 
-  def string_evaluator(s, rng=None):
+  def string_evaluator(s, rng=None, **kwargs):
     tokens = string_to_tokens(s.strip())
     stack = collections.deque(remove_ignored(token_parser.parse(tokens)))
-    output = stack_evaluator(stack, rng) if rng else stack_evaluator(stack)
+    if rng:
+      output = stack_evaluator(stack, rng, **kwargs)
+    else:
+      output = stack_evaluator(stack, **kwargs)
     return output
 
   return string_evaluator

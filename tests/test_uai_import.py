@@ -109,6 +109,16 @@ class TestNetworkImport(object):
     triangle_net.evidence(0)
     triangle_net.marginals(0)
 
+  def test_smoothing(self):
+    """Check that smoothing of network probabilities works."""
+    for epsilon in [0.0, 0.1, 0.2, 0.4]:
+      for network_string in [NETWORK_STRING_A, NETWORK_STRING_B]:
+        net = uai_import.network_from_string(
+          network_string, utils.RandomState(), epsilon=epsilon)
+        for node in net.nodes():
+          for cpt_prob in node.cpt_probabilities:
+            assert epsilon <= cpt_prob <= 1.0 - epsilon
+
 
 class TestEvidenceImport(object):
   def test_string_import(self):
