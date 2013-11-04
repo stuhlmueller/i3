@@ -1,5 +1,7 @@
 from __future__ import division
 
+import numbers
+
 from i3 import bayesnet
 from i3 import learn
 
@@ -18,6 +20,7 @@ class Trainer(object):
       learner_class: a learnable distribution as defined in i3.learn
       k: number of neighbors for kNN learner
     """
+    assert isinstance(k, numbers.Number)
     self.net = net
     self.learners = {}
     self.inverse_map = inverse_map
