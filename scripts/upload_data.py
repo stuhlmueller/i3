@@ -9,7 +9,7 @@ def upload_data():
     for file in files:
       if not file.startswith("."):
         source_file = os.path.join(root, file)
-        target_file = os.path.join(os.path.basename(root), file)
+        target_file = os.path.join(os.path.relpath(root, local_data_path), file)
         print "Uploading {} to {}".format(source_file, target_file)
         cloud.bucket.put(source_file, target_file)
 
