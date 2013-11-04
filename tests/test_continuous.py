@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import pytest
 
 from i3 import bayesnet
 from i3 import dist
@@ -10,6 +11,7 @@ from i3 import train
 from i3 import utils
 
 
+@pytest.mark.slow
 class TestBrightnessContrastBayesNet(object):
   # (with-query ((reflectance (gaussian 1 1)))
   #     reflectance
@@ -22,31 +24,33 @@ class TestBrightnessContrastBayesNet(object):
     self.illumination_1 = bayesnet.DistRealBayesNetNode(
       index=1, distribution=dist.GammaDistribution(self.rng, 9, 0.5))
     self.illumination_2 = bayesnet.DistRealBayesNetNode(
-        index=2, distribution=dist.GaussianDistribution(self.rng, 1, 0.5))
+      index=2, distribution=dist.GaussianDistribution(self.rng, 1, 0.5))
     self.illumination = bayesnet.DistRealBayesNetNode(
-        index=3, distribution=dist.FunctionDistribution(self.rng,
-          lambda parents: dist.GaussianDistribution(
-            self.rng, parents[0] + parents[1], 0.2)))
-        rng=self.rng)
+      index=3, distribution=dist.FunctionDistribution(
+        self.rng,
+        lambda parents: dist.GaussianDistribution(
+          self.rng, parents[0] + parents[1], 0.2)))
     self.observation = bayesnet.DistRealBayesNetNode(
-        index=3, distribution=dist.FunctionDistribution(self.rng,
-          lambda parents: dist.GaussianDistribution(
-            self.rng, parents[0] * parents[1], 2)))
-    self.net = bayesnet.BayesNet(self.rng,
-        nodes=[self.reflectance, self.illumination_1,
-               self.illumination_2, self.illumination,
-               self.observation],
-        edges=[(self.reflectance, self.observation),
-               (self.illumination_1, self.illumination),
-               (self.illumination_2, self.illumination),
-               (self.illumination, self.observation)])
+      index=4, distribution=dist.FunctionDistribution(
+        self.rng,
+        lambda parents: dist.GaussianDistribution(
+          self.rng, parents[0] * parents[1], 2)))
+    self.net = bayesnet.BayesNet(
+      self.rng,
+      nodes=[self.reflectance, self.illumination_1,
+             self.illumination_2, self.illumination,
+             self.observation],
+      edges=[(self.reflectance, self.observation),
+             (self.illumination_1, self.illumination),
+             (self.illumination_2, self.illumination),
+             (self.illumination, self.observation)])
     self.net.compile()
 
   def test_samples(self):
     worlds = []
     for i in range(10):
       worlds.append(self.net.sample())
-    print worlds
+      print worlds
 
   def test_inverse_inferences(self):
     inverse_map = invert.compute_inverse_map(
@@ -65,7 +69,7 @@ class TestBrightnessContrastBayesNet(object):
         for _ in xrange(trainsamps):
           world = self.net.sample()
           trainer.observe(world)
-        trainer.finalize()
+          trainer.finalize()
 
         evidence = evid.Evidence(keys=[self.observation], values=[5.5])
         proposal_size = 4
@@ -77,11 +81,11 @@ class TestBrightnessContrastBayesNet(object):
         for i in range(num_samples):
           test_sampler.transition()
           states.append(test_sampler.state)
-        m = np.mean([s[0] for s in states])
-        print 'trainsamps %s trial %s mean %s' % (trainsamps, trial, m)
-        errors.append(m-trueval)
-      rmse = math.sqrt(np.mean([e**2 for e in errors]))
-      print 'trainsamps %s rmse %s' % (trainsamps, rmse)
+          m = np.mean([s[0] for s in states])
+          print 'trainsamps %s trial %s mean %s' % (trainsamps, trial, m)
+          errors.append(m-trueval)
+          rmse = math.sqrt(np.mean([e**2 for e in errors]))
+          print 'trainsamps %s rmse %s' % (trainsamps, rmse)
 
 
 if __name__ == '__main__':
