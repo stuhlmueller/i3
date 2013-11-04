@@ -4,5 +4,5 @@ compile
 initialize
 update 1000
 monitor refl
-update 10000
+update 100000000
 coda *
