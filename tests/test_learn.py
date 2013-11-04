@@ -89,7 +89,7 @@ class TestLogisticRegressionLearner(object):
 
   def test_learner(self, transform_inputs):
     """Test learner on its own."""
-    learner = learn.LogisticRegressionLearner(self.rng, transform_inputs)
+    learner = learn.LogisticRegressionLearner([0, 1], self.rng, transform_inputs)
     training_data = [
       ((0, 0, 0), 0),
       ((0, 0, 1), 1),
@@ -109,7 +109,7 @@ class TestLogisticRegressionLearner(object):
 
   def test_learner_accuracy(self, transform_inputs):
     """Test that learner gets relative probabilities right"""
-    learner = learn.LogisticRegressionLearner(self.rng, transform_inputs)
+    learner = learn.LogisticRegressionLearner([0, 1], self.rng, transform_inputs)
     training_data = [0] * 666 + [1] * 333
     self.rng.shuffle(training_data)
     for datum in training_data:
@@ -120,7 +120,7 @@ class TestLogisticRegressionLearner(object):
 
   def test_predict_proba(self, transform_inputs):
     """Test incomplete label data"""
-    learner = learn.LogisticRegressionLearner(self.rng, transform_inputs)
+    learner = learn.LogisticRegressionLearner([0, 1], self.rng, transform_inputs)
     training_data = [
       ((0, 0, 0), 0),
       ((1, 0, 0), 0),
@@ -137,7 +137,7 @@ class TestLogisticRegressionLearner(object):
   @pytest.mark.parametrize("k", [1, 5, 10, 30, 50, 70, 90, 95, 99])      
   def test_online_lr_consistency(self, k, transform_inputs):
     learner = learn.LogisticRegressionLearner(
-      self.rng, transform_inputs=transform_inputs)  
+      [0, 1], self.rng, transform_inputs=transform_inputs)  
     for i in range(500):
       for _ in xrange(k):
         learner.observe((), 1)

@@ -25,7 +25,7 @@ class CountLearner(dist.DiscreteDistribution):
     """Return probability of value given values indicating family."""
     counts = self.counts[tuple(params)]
     probability = counts[value] / sum(counts)
-    return math.log(probability)
+    return utils.safe_log(probability)
 
   def observe(self, params, value):
     """Increment count of value for chosen family."""
@@ -148,14 +148,15 @@ class GibbsLearner(dist.DiscreteDistribution):
 
 identity_transformer = lambda xs: xs
 
-square_transformer = lambda xs: tuple([xi * xj for xi in xs for xj in xs])
+square_transformer = lambda xs: [xi * xj for xi in xs for xj in xs]
 
 
 class LogisticRegressionLearner(dist.DiscreteDistribution):
   # Only binary values supported for now.
   
-  def __init__(self, rng, transform_inputs=None):
+  def __init__(self, support, rng, transform_inputs=None):
     super(LogisticRegressionLearner, self).__init__(rng)
+    assert support == [0, 1]
     self.weights = None
     self.rate = 1.0
     self.n = 1
@@ -165,7 +166,7 @@ class LogisticRegressionLearner(dist.DiscreteDistribution):
       self.transformer = transform_inputs
 
   def params_to_inputs(self, params):
-    return self.transformer(params) + (1,)
+    return tuple(self.transformer(params)) + (1,)
 
   def probability(self, inputs, value):
     logit = sum(theta_i * x_i for (theta_i, x_i) in zip(self.weights, inputs))
@@ -176,7 +177,7 @@ class LogisticRegressionLearner(dist.DiscreteDistribution):
     assert value in (0, 1)
     inputs = self.params_to_inputs(params)
     assert len(inputs) == len(self.weights)
-    return math.log(self.probability(inputs, value))
+    return utils.safe_log(self.probability(inputs, value))
 
   def observe(self, params, value):
     assert value in (0, 1)
