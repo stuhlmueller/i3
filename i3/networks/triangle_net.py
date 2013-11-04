@@ -23,8 +23,7 @@ def evidence(index, determinism=95):
   filename = os.path.join(
     data_path(), "evidence/triangle-n120-s{}-1.evid".format(determinism))
   evidence = uai_import.load_evidence(filename)
-  assert len(evidence) == 1
-  return evidence[0]
+  return evidence
 
 
 def marginals(index, determinism=95):

@@ -203,12 +203,14 @@ def network_eval(stack, rng):
   assert num_cliques == num_vars
 
   clique_order = {}
-  for node in net.nodes_by_index:
+  for _ in range(num_vars):
     clique_size = stack.popleft()
-    clique_order[node] = utils.pop_n(stack, clique_size)
-    for index in clique_order[node]:
-      if index != node.index:
-        net.add_edge(net.nodes_by_index[index], node)
+    current_clique_order = utils.pop_n(stack, clique_size)
+    node = net.nodes_by_index[current_clique_order[-1]]
+    for index in current_clique_order[:-1]:
+      assert index != node.index
+      net.add_edge(net.nodes_by_index[index], node)
+    clique_order[node] = current_clique_order
 
   for node in net.nodes_by_index:
     cpt_size = stack.popleft()
@@ -230,18 +232,14 @@ def network_eval(stack, rng):
 
 def evidence_eval(stack):
   """Turn stack of (UAI) evidence numbers into list of random worlds."""
-  samples = []
-  num_samples = stack.popleft()
-  for i in range(num_samples):
-    num_variables = stack.popleft()
-    evidence = evid.Evidence()
-    for j in range(num_variables):
-      index = stack.popleft()
-      value = stack.popleft()
-      evidence[index] = value
-    samples.append(evidence)
+  num_variables = stack.popleft()
+  evidence = evid.Evidence()
+  for j in range(num_variables):
+    index = stack.popleft()
+    value = stack.popleft()
+    evidence[index] = value
   assert not stack
-  return samples
+  return evidence
 
 
 def marginal_eval(stack):

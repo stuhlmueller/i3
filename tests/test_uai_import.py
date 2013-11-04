@@ -32,20 +32,19 @@ NETWORK_STRING_B = """BAYES
 2 2 3
 3
 1 0
-2 1 0
-2 2 1
+2 1 2
+2 0 1
 
 2
  0.436 0.564
 
 4
- 0.128 0.920
- 0.872 0.080
+ 0.128 0.872
+ 0.920 0.080
 
 6
- 0.210 0.811
- 0.333 0.000
- 0.457 0.189"""
+ 0.210 0.333 0.457
+ 0.811 0.000 0.189"""
 
 NETWORK_PROBABILITIES = [
   ([0, 0, 0], 0.436 * 0.128 * 0.210),
@@ -55,9 +54,7 @@ NETWORK_PROBABILITIES = [
   ([0, 1, 1], 0.436 * 0.872 * 0.000),
 ]
 
-EVIDENCE_STRING = """2
-2 1 0 2 1
-1 2 0"""
+EVIDENCE_STRING = """2 1 0 2 1"""
 
 MARGINAL_STRING = """MAR
 1
@@ -116,12 +113,9 @@ class TestNetworkImport(object):
 class TestEvidenceImport(object):
   def test_string_import(self):
     """Check that imported random worlds look as expected."""
-    worlds = uai_import.evidence_from_string(EVIDENCE_STRING)
-    assert len(worlds[0]) == 2
-    assert worlds[0][1] == 0
-    assert worlds[0][2] == 1
-    assert len(worlds[1]) == 1
-    assert worlds[1][2] == 0
+    world = uai_import.evidence_from_string(EVIDENCE_STRING)
+    assert world[1] == 0
+    assert world[2] == 1
 
 
 class TestMarginalImport(object):
